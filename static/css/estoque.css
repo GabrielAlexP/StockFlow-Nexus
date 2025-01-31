@@ -1,0 +1,422 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    background-color: #0d0d0d;
+    color: #d0d0d0;
+    overflow: auto;
+    padding-top: 30px;
+    padding-bottom: 80px;
+}
+
+.container {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 600px; 
+    text-align: center;
+    backdrop-filter: blur(10px);
+    margin: 0 auto;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+h1 {
+    color: #3e8e41;
+    margin-bottom: 20px;
+}
+
+.filtro {
+    display: flex;
+    gap: 8px;
+    width: 100%; /* Ocupa 100% do espaço disponível */
+}
+
+.filtro select#empresa-select {
+    width: 40%; /* Ocupa 20% do espaço disponível */
+    transition: width 0.5s ease;
+}
+
+.filtro select#ativos {
+    width: 40%; /* Ocupa 30% do espaço disponível */
+    transition: width 0.5s ease;
+}
+
+
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%; 
+    max-width: 600px; 
+}
+
+.search-bar input[type="text"] {
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background-color: #1a1a1a;
+    color: #d0d0d0;
+    font-size: 16px;
+}
+
+.search-bar input[type="text"]:focus {
+    outline: none;
+    border: 1px solid #3e8e41;
+    box-shadow: 0 0 10px #3e8e41;
+}
+
+.search-bar select {
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background-color: #1a1a1a;
+    color: #d0d0d0;
+    font-size: 16px;
+    width: 100%; /* Ocupa 100% do espaço disponível */
+}
+
+.search-bar select:focus {
+    outline: none;
+    border: 1px solid #3e8e41;
+    box-shadow: 0 0 10px #3e8e41;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    color: #d0d0d0;
+}
+
+.checkbox-group input[type="radio"] {
+    margin-right: 10px;
+    accent-color: #3e8e41;
+}
+
+.checkbox-group input[type="text"] {
+    margin-right: 10px;
+    accent-color: #3e8e41;
+    width: 100%; 
+}
+
+.checkbox-group select {
+   width: 294px;
+}
+
+.left{
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.right {
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Alinha verticalmente os itens */
+    gap: 100px; /* Espaço entre o parágrafo e o select */
+}
+
+.right p {
+    margin: 0; /* Remove a margem padrão do parágrafo */
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    background-color: #3e8e41;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    width: 100%; /* Ocupa 100% do espaço disponível */
+}
+
+.search-bar button:hover {
+    background-color: #2e6e31;
+    box-shadow: 0 0 10px #3e8e41;
+}
+
+.search-bar button:active {
+    transform: scale(0.95);
+}
+
+.resultados {
+    width: 100%;
+    max-width: 1000px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    margin-top: 20px;
+}
+
+.resultados.show {
+    opacity: 1;
+}
+
+.resultado-item {
+    background: rgba(20, 20, 20, 0.9); /* Aumentei a opacidade para dar mais contraste */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Tornar a borda mais visível */
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    gap: 14px;
+    color: white; /* Garantir que o texto tenha boa visibilidade */
+}
+
+.resultado-item p {
+    font-size: 16px; /* Garantir um tamanho de fonte confortável */
+    line-height: 1.5; /* Adicionar espaçamento entre as linhas de texto */
+}
+
+
+.resultado-item:hover {
+    background-color: #2e6e31;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #3e8e41;
+}
+
+.detalhes {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    gap: 20px;
+}
+
+.detalhes h2 {
+    color: #3e8e41;
+    margin-bottom: 20px;
+}
+
+.detalhes p {
+    color: #d0d0d0;
+    margin-bottom: 15px;
+}
+
+.detalhes .boxes {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.box {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 25px;
+    width: 30%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    text-align: center;
+}
+
+.box h2 {
+    color: #3e8e41;
+    margin-bottom: 20px;
+}
+
+.box p {
+    color: #d0d0d0;
+}
+
+.detalhes button {
+    background-color: #3e8e41;
+    color: #0d0d0d;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    margin-top: 10px;
+}
+
+.detalhes button:hover {
+    background-color: #2e6e31;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #3e8e41;
+}
+
+.detalhes button:active {
+    transform: scale(0.95);
+}
+
+.resultados::-webkit-scrollbar {
+    width: 12px;
+}
+
+.resultados::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+
+.resultados::-webkit-scrollbar-thumb {
+    background: #3e8e41;
+    border-radius: 10px;
+    border: 3px solid #1a1a1a;
+}
+
+.resultados::-webkit-scrollbar-thumb:hover {
+    background: #2e6e31;
+}
+
+#pedidos-nao-entregues {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    margin-bottom: 30px;
+    max-height: calc(100vh - 160px);
+}
+
+#tabela-pedidos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#tabela-pedidos th,
+#tabela-pedidos td {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px;
+    text-align: left;
+    color: #d0d0d0;
+}
+
+#tabela-pedidos th {
+    background-color: #3e8e41;
+    color: #fff;
+}
+
+#tabela-pedidos tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-top: 15px;
+        padding-bottom: 50px;
+    }
+
+    .container {
+        width: 100%;
+        padding: 15px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .filtro {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filtro select,
+    .filtro input[type="text"] {
+        width: 100%;
+        min-width: 250px; 
+        max-width: 400px; 
+        box-sizing: border-box;
+    }
+
+    .search-bar input[type="text"],
+    .search-bar select {
+        font-size: 14px;
+    }
+
+    .search-bar {
+        padding: 15px;
+    }
+
+    .resultados {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .resultado-item {
+        padding: 15px;
+        margin: 10px 0;
+    }
+
+    .detalhes .boxes {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .box {
+        width: 90%;
+    }
+
+    #pedidos-nao-entregues {
+        max-height: calc(100vh - 200px);
+    }
+
+    #tabela-pedidos {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    #tabela-pedidos th,
+    #tabela-pedidos td {
+        padding: 8px;
+        text-align: left;
+        word-wrap: break-word;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    #tabela-pedidos th:nth-child(5),
+    #tabela-pedidos td:nth-child(5) {
+        max-width: 150px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    #empresa-select {
+        min-width: 250px; 
+        max-width: 400px; 
+    }
+}

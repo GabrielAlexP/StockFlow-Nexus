@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Estoque</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/estoque.css">
+    <link rel="icon" href="/favicon.png">
+</head>
+<body>
+    <div class="container" id="search-container">
+        <h1>Consulta de Estoque</h1>
+        <div class="search-bar">
+            <div class="filtro">
+                <select name="" id="empresa-select">
+                    <option value="">Empresas:</option>
+                </select>
+                <select name="" id="ativos">
+                    <option value="all">Todos</option>
+                    <option value="ativo">Ativo</option>
+                    <option value="inativo">Inativo</option>
+                </select>
+                <select name="" id="marca">    
+                    <option value="all">Marca:</option>
+                </select>
+            </div>
+            <div class="checkbox-group">
+                <div class="left">
+                    <input type="text" id="search-input" placeholder="Digite sua pesquisa aqui...">
+                </div>
+                <div class="right">
+                    
+                    <label><input type="radio" name="filter" value="description"> Descrição</label>
+                    <label><input type="radio" name="filter" value="code"> Código</label>
+                    <label><input type="radio" name="filter" value="barcode"> Cód. Barras</label>
+                </div>
+            </div>
+            <button type="button" onclick="buscarInformacoes()">Pesquisar</button>
+        </div>
+    </div>
+    <div id="resultados" class="resultados">
+        <p id="buscando-texto" style="display: none;">Buscando informações de...</p>
+        <div id="lista-resultados"></div>
+    </div>
+    <div id="detalhes" class="detalhes" style="display: none;">
+        <h2>Detalhes do Produto</h2>
+        <div id="detalhes-conteudo"></div>
+        <div class="boxes">
+            <div class="box">
+                <h2>Disponível para <br>Venda</h2>
+                <p id="sistema-info">Informações do sistema</p>
+            </div>
+            <div class="box">
+                <h2>Vendido</h2>
+                <p id="para-entregar">Informações para entregar</p>
+            </div>
+            <div class="box">
+                <h2>Estoque Físico</h2>
+                <p id="fisico">Informações físicas</p>
+            </div>
+        </div>
+        <button onclick="fecharDetalhes()">Fechar</button>
+    </div>
+    <div id="pedidos-nao-entregues" class="detalhes" style="display: none; margin-top: 20px;">
+        <h2>Pedidos Não Entregues</h2>
+        <table id="tabela-pedidos">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Situação</th>
+                    <th>Qtd Pendente</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script src="../static/js/estoque.js"></script>
+</body>
+</html>

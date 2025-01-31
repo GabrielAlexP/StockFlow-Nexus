@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wdth,wght@0,95,100..900;1,95,100..900&display=swap');
+
+body {
+    margin: 0;
+    font-family: "Noto Sans", sans-serif;
+}
+
+body * {
+    box-sizing: border-box;
+}
+
+.main-login {
+    width: 100vw;
+    height: 100vh;
+    background: #201b2c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.left-login {
+    width: 50vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.left-login-image {
+    width: 35vw;
+}
+
+.left-login > h1 {
+    font-size: 3vw;
+    color: #77ffc0;
+}
+
+.right-login {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-login {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 35px;
+    background: #2f2841;
+    border-radius: 20px;
+    box-shadow: 0px 10px 40px #00000056;
+}
+
+.card-login > h1 {
+    color: #00ff88;
+    font-weight: 800;
+    margin: 0;
+}
+
+.textfield {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 10px;
+}
+
+.textfield > input,
+.textfield > select {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    background: #514869;
+    color: #f0ffffde;
+    font-size: 12pt;
+    box-shadow: 0px 10px 40px #00000056;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.textfield > label {
+    color: #f0ffffde;
+    margin-bottom: 10px;
+}
+
+.textfield > input::placeholder {
+    color: #f0ffff94;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 16px 0px;
+    margin: 25px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    color: #2b134b;
+    background: #00ff88;
+    cursor: pointer;
+    box-shadow: 0px 10px 40px -12px #00ff8052;
+    transition: all 0.2s ease-in-out; /* Suaviza os efeitos */
+}
+
+.btn-login:hover {
+    background: #00d474; /* Cor mais escura para destaque */
+    transform: translateY(-2px); /* Eleva ligeiramente o botão */
+    box-shadow: 0px 12px 50px -10px #00ff8080; /* Expande a sombra */
+}
+
+/* Ativo (efeito de clique) */
+.btn-login:active {
+    transform: translateY(2px); /* Abaixa ligeiramente o botão */
+    box-shadow: 0px 8px 30px -12px #00ff8080; /* Reduz a sombra */
+}
+
+@media only screen and (max-width: 950px) {
+    .card-login {
+        width: 85%;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .main-login {
+        flex-direction: column;
+    }
+
+    .left-login > h1 {
+        display: none;
+    }
+
+    .left-login {
+        width: 100%;
+        height: auto;
+    }
+
+    .right-login {
+        width: 100%;
+        height: auto;
+    }
+
+    .left-login-image {
+        width: 40vh;
+    }
+
+    .card-login {
+        width: 90%;
+    }
+}
+
+/* Estilo adicional para os novos campos */
+.empresa-field,
+.usuario-field {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 10px 0;
+}
+
+.empresa-field > select,
+.usuario-field > select {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    background: #514869;
+    color: #f0ffffde;
+    font-size: 12pt;
+    box-shadow: 0px 10px 40px #00000056;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.empresa-field > label,
+.usuario-field > label {
+    color: #f0ffffde;
+    margin-bottom: 10px;
+}

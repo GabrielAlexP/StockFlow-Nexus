@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos Não Entregues</title>
+    <link rel="stylesheet" href="../static/css/Status.css">
+    <link rel="icon" href="/favicon.png">
+</head>
+<body>
+    <div id="timer">
+        05:00 para atualizar a página
+    </div>
+    <h2>Status de Pedido</h2>
+    <div class="legenda">
+        <div class="legenda-item"><span class="cor-verde"></span> Liberado</div>
+        <div class="legenda-item"><span class="cor-amarela"></span> Entregue part.</div>
+    </div>
+    <div id="pedidos-nao-entregues" class="detalhes">
+        <table id="tabela-pedidos">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Data</th>
+                    <th>Situação</th>
+                    <th>Detalhes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="liberado">
+                    <td>12345</td>
+                    <td>Cliente A</td>
+                    <td>Vendedor A</td>
+                    <td>2025-01-27</td>
+                    <td>Liberado</td>
+                    <td><span class="detalhes-link">Mostrar Detalhes</span></td>
+                </tr>
+                <tr class="entregue-part">
+                    <td>12346</td>
+                    <td>Cliente B</td>
+                    <td>Vendedor B</td>
+                    <td>2025-01-26</td>
+                    <td>Entregue part.</td>
+                    <td><span class="detalhes-link">Mostrar Detalhes</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script src="../static/js/status.js"></script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+body {
+    display: flex;
+    margin: 0;
+    height: 100vh;
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.left-area {
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+    background-color: #1e1e1e;
+    align-items: center; /* Centraliza horizontalmente */
+    padding-top: 30px; /* Distância do topo */
+    height: 100%; /* Garante que o .left-area ocupe toda a altura disponível */
+}
+
+.filtro {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 20px; /* Espaçamento entre os elementos */
+    flex-shrink: 0; /* Impede que o filtro encolha */
+}
+
+.filtro label {
+    font-size: 1.2rem; /* Aumentando o tamanho da fonte */
+    color: #ffffff;
+}
+
+.filtro select,
+.filtro input {
+    padding: 12px 16px; /* Aumenta o espaço interno */
+    font-size: 1.2rem; /* Tamanho maior da fonte */
+    color: #121212;
+    background-color: #3cb371;
+    border: 2px solid #2b2b2b;
+    border-radius: 10px; /* Bordas mais arredondadas */
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.filtro select:hover,
+.filtro input:hover {
+    background-color: #2b2b2b;
+    color: #3cb371;
+    border-color: #3cb371;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Realce no hover */
+}
+
+.filtro select option {
+    padding: 10px;
+    background-color: #121212;
+    color: #ffffff;
+    border: 1px solid #3cb371;
+    font-size: 1rem;
+}
+
+.filtro select option:hover {
+    background-color: #3cb371;
+    color: #121212;
+}
+
+#chart-container {
+    flex-grow: 1;
+    width: 100%;
+    background-color: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 20px; /* Adiciona um pequeno espaço inferior */
+    height: 85%;
+}
+
+#forms-container {
+    width: 25%;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+form {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #3cb371;
+    border-radius: 10px; /* Bordas arredondadas */
+    background-color: #1e1e1e;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Adicionando um leve sombreamento */
+}
+
+form h2 {
+    margin-top: 0;
+    color: #3cb371;
+    border-bottom: 2px solid #3cb371;
+    padding-bottom: 5px;
+    font-size: 1.5rem; /* Tamanho maior */
+    font-weight: 500; /* Estilo elegante */
+}
+
+.vendedor {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ffffff;
+    border-radius: 10px; /* Bordas arredondadas */
+    background-color: #2b2b2b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.vendedor h3 {
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #3cb371;
+    color: #3cb371;
+    font-size: 1.4rem; /* Tamanho maior */
+    font-weight: 500;
+}
+
+.vendedor .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 1.2rem; /* Tamanho maior */
+    border-bottom: 1px solid #3cb371;
+}
+
+.vendedor .row:last-child {
+    border-bottom: none;
+}
+
+.vendedor span {
+    color: #ffffff;
+    padding: 5px;
+}
+
+.vendedor .row span:first-child {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.vendedor .row span:last-child {
+    font-size: 1.3rem; /* Tamanho maior para os valores */
+    color: #3cb371; /* Destaque para os valores */
+}
+
+/* Estilos para o formulário de total */
+#total {
+    margin-top: 20px; /* Distância do topo */
+    padding: 10px;
+    border: 1px solid #ffffff;
+    border-radius: 10px; /* Bordas arredondadas */
+    background-color: #2b2b2b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#total h2 {
+    color: #3cb371;
+    border-bottom: 2px solid #3cb371;
+    padding-bottom: 5px;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+#total .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #3cb371;
+}
+
+#total .row:last-child {
+    border-bottom: none;
+}
+
+#total span {
+    color: #ffffff;
+    padding: 5px;
+}
+
+#total .row span:first-child {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#total .row span:last-child {
+    font-size: 1.3rem; /* Tamanho maior para os valores */
+    color: #3cb371; /* Destaque para os valores */
+}
+
+#loading-alert {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    margin: 20px 0;
+  }
+
+.superior{
+    display: flex;
+    flex-direction: column;
+}
+
+.att{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #3cb371;
+}
+
+/* Estilos gerais permanecem inalterados */
+
+/* ============================
+   Responsividade para Televisores (resolução ampla)
+   ============================ */
+/* Ajustes para telas grandes (TVs) */
+@media screen and (min-width: 1920px) {
+    #forms-container {
+        display: grid; /* Torna o container em grade */
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Adapta as colunas dinamicamente */
+        gap: 15px; /* Reduz espaço entre formulários */
+        height: calc(100vh - 50px); /* Ajusta a altura ao restante da tela */
+        overflow-y: auto; /* Permite rolagem vertical se necessário */
+        padding: 15px;
+    }
+
+    #sales-form {
+        display: grid; /* Organiza os vendedores em grade */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Ajusta o número de colunas */
+        gap: 10px; /* Espaço entre vendedores */
+        padding: 10px; /* Reduz padding interno */
+    }
+
+    .vendedor {
+        padding: 8px; /* Reduz espaço interno do vendedor */
+        font-size: 1.2rem; /* Ajusta o tamanho da fonte */
+        border: 1px solid #3cb371; /* Mantém bordas para separação */
+    }
+
+    .vendedor h3 {
+        font-size: 1.4rem; /* Reduz título */
+        margin-bottom: 8px;
+    }
+
+    .vendedor .row {
+        font-size: 1.2rem; /* Reduz texto das linhas */
+        padding: 4px 0; /* Reduz espaço entre as linhas */
+    }
+
+    .vendedor span {
+        font-size: 1rem; /* Ajusta o tamanho do texto dos spans */
+    }
+
+    #chart-container {
+        height: 90%; /* Expande o gráfico */
+    }
+
+    canvas {
+        width: 100%; /* Ocupa toda a largura disponível */
+        height: auto; /* Mantém a proporção */
+    }
+}
+
+/* ============================
+   Responsividade para Telefone (telas pequenas)
+   ============================ */
+@media screen and (max-width: 768px) {
+    body {
+        flex-direction: column; /* Mantém o layout em coluna */
+        height: auto; /* Permite rolagem */
+    }
+
+    .left-area {
+        width: 100%; /* Ocupa toda a largura */
+        padding: 10px; /* Reduz o padding */
+    }
+
+    .filtro {
+        flex-direction: row; /* Mantém os filtros enfileirados */
+        flex-wrap: nowrap; /* Impede a quebra de linha */
+        gap: 5px; /* Reduz o espaçamento entre os elementos */
+        justify-content: space-between; /* Distribui os elementos uniformemente */
+        align-items: center; /* Centraliza verticalmente */
+    }
+
+    .filtro select,
+    .filtro input {
+        padding: 6px 8px; /* Reduz o espaçamento interno */
+        font-size: 0.9rem; /* Reduz o tamanho da fonte */
+        width: auto; /* Ajusta ao conteúdo */
+        border-radius: 8px; /* Mantém bordas arredondadas menores */
+    }
+
+    .filtro label {
+        font-size: 0.85rem; /* Reduz a fonte dos labels */
+    }
+
+    #chart-container {
+        height: 70%; /* Aproveita bem o espaço para o gráfico */
+        padding-bottom: 10px; /* Reduz o espaçamento inferior */
+    }
+
+    canvas {
+        width: 100%; /* Ajusta o gráfico à largura disponível */
+        height: auto; /* Mantém a proporção do gráfico */
+    }
+
+    #forms-container {
+        width: 100%; /* Ocupa toda a largura */
+        padding: 10px;
+    }
+
+    form {
+        padding: 10px; /* Reduz o espaçamento interno */
+    }
+
+    form h2 {
+        font-size: 1.3rem; /* Tamanho menor do título */
+    }
+
+    .vendedor h3 {
+        font-size: 1.2rem; /* Tamanho menor do título do vendedor */
+    }
+
+    .vendedor .row {
+        font-size: 1rem; /* Tamanho menor para o texto */
+    }
+
+    .vendedor .row span:last-child {
+        font-size: 1.1rem; /* Ajusta os valores */
+    }
+}
