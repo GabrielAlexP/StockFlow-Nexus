@@ -102,15 +102,18 @@ def inserir_no_banco(df, tabela, insert_query):
         cursor.execute(f"SET IDENTITY_INSERT dbo.{tabela} ON")
         conn.commit()
 
+        values_list = []
         for _, row in df.iterrows():
             if tabela == "PerfilFiscal":
-                data_alteracao = parsedate_to_datetime(row['DataAlteracao']).replace(tzinfo=None)
+                data_alteracao = row['DataAlteracao']
+                if isinstance(data_alteracao, str):
+                    data_alteracao = parsedate_to_datetime(data_alteracao).replace(tzinfo=None)
+                elif isinstance(data_alteracao, pd.Timestamp):
+                    data_alteracao = data_alteracao.to_pydatetime()
                 regra_ipi = int(row['RegraIpi'])
-                
                 if not verificar_existencia_regra_ipi(regra_ipi):
                     print(f"Erro: RegraIpi {regra_ipi} não existe na tabela PerfilFiscal_IPI.")
                     return False
-
                 valores = (
                     int(row['Id']),
                     str(row['Descricao']),
@@ -125,11 +128,28 @@ def inserir_no_banco(df, tabela, insert_query):
                     int(row['UsuarioAlteracao']),
                     int(row['SimplesNacional'])
                 )
+            elif tabela == "PerfilFiscal_Empresa":
+                valores = (
+                    int(row['Id']),
+                    str(row['IDEmpresa']),
+                    int(row['IdPerfil'])
+                )
+            elif tabela == "PerfilFiscal_NCM":
+                valores = (
+                    int(row['Id']),
+                    str(row['NCM']),
+                    int(row['IdPerfil'])
+                )
+            elif tabela == "PerfilFiscal_UF":
+                valores = (
+                    int(row['Id']),
+                    str(row['UF']),
+                    int(row['IdPerfil'])
+                )
             else:
                 valores = tuple(row)
-            
-            cursor.execute(insert_query, valores)
-
+            values_list.append(valores)
+        cursor.executemany(insert_query, values_list)
         conn.commit()
         return True
     except Exception as e:
@@ -148,6 +168,8 @@ def inserir_no_banco(df, tabela, insert_query):
 @fiscal_bp.route('/fiscal', methods=['GET'])
 def fiscal_page():
     return render_template('fiscal.html')
+
+
 
 @fiscal_bp.route('/gerar-perfil', methods=['POST'])
 def gerar_perfil_route():
@@ -187,9 +209,9 @@ def gerar_perfil_route():
             'DataAlteracao', 'UsuarioAlteracao', 'SimplesNacional'
         ]).astype({
             'Id': 'int32',
-            'CaracTributacao': 'int8',        
-            'Finalidade': 'int8',             
-            'Origem': 'int8',                 
+            'CaracTributacao': 'int8',
+            'Finalidade': 'int8',
+            'Origem': 'int8',
             'RegraIpi': 'int32',
             'RegraPisCofins': 'int32',
             'RegraTrib': 'int32',
@@ -234,8 +256,29 @@ def inserir_dados():
         }
         for tabela, dados in tabelas.items():
             if dados:
-                df = pd.DataFrame(dados)
-                if tabela != "PerfilFiscal":
+                if tabela == "PerfilFiscal":
+                    df = pd.DataFrame(dados)
+                    # Converte DataAlteracao para datetime removendo timezone, se presente
+                    df['DataAlteracao'] = pd.to_datetime(df['DataAlteracao']).dt.tz_localize(None)
+                    df = df.astype({
+                        'Id': 'int32',
+                        'CaracTributacao': 'int8',
+                        'Finalidade': 'int8',
+                        'Origem': 'int8',
+                        'RegraIpi': 'int32',
+                        'RegraPisCofins': 'int32',
+                        'RegraTrib': 'int32',
+                        'UsuarioAlteracao': 'int32',
+                        'SimplesNacional': 'int8'
+                    })
+                elif tabela == "PerfilFiscal_Empresa":
+                    df = pd.DataFrame(dados, columns=["Id", "IDEmpresa", "IdPerfil"])
+                    df = df.astype({'Id': 'int32', 'IdPerfil': 'int32'})
+                elif tabela == "PerfilFiscal_NCM":
+                    df = pd.DataFrame(dados, columns=["Id", "NCM", "IdPerfil"])
+                    df = df.astype({'Id': 'int32', 'IdPerfil': 'int32'})
+                elif tabela == "PerfilFiscal_UF":
+                    df = pd.DataFrame(dados, columns=["Id", "UF", "IdPerfil"])
                     df = df.astype({'Id': 'int32', 'IdPerfil': 'int32'})
                 if not inserir_no_banco(df, tabela, queries[tabela]):
                     return jsonify({"error": f"Falha ao inserir {tabela}"}), 500

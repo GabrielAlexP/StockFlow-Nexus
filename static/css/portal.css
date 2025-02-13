@@ -41,7 +41,7 @@ h1 {
 .cargo-header {
     font-size: 16px;
     font-weight: bold;
-    min-width: fit-content; /* Prevents title from pushing it too much */
+    min-width: fit-content; 
 }
 
 /* Navegação */
@@ -132,4 +132,48 @@ main {
     flex-grow: 1;
     padding-top: 270px; 
     text-align: center;
+}
+
+.right-icons {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+}
+
+.icon {
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.icon i {
+    color: #ffffff;
+    font-size: 30px;
+}
+
+.icon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+.icon-collapse:hover {
+    background: #8CC63F;
+}
+
+.left-icons {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 15px;
 }

@@ -202,6 +202,15 @@ function mostrarPreview(tabela) {
 
 // ==================== FUNÇÕES DE BANCO DE DADOS ====================
 async function inserirNoBanco() {
+    // Exibe a confirmação
+    if (!confirm("Deseja inserir estas informações no banco de dados?")) {
+        return;
+    }
+
+    // Bloqueia o botão de inserção para evitar múltiplas requisições
+    const btnInsert = document.getElementById("btnInserirDados");
+    btnInsert.disabled = true;
+
     try {
         const dadosParaEnviar = {
             perfil: currentPerfilData,
@@ -222,6 +231,8 @@ async function inserirNoBanco() {
         alert('Dados inseridos com sucesso!');
     } catch (error) {
         alert('Erro na inserção: ' + error.message);
+    } finally {
+        btnInsert.disabled = false;
     }
 }
 
@@ -263,3 +274,152 @@ function stopResize() {
     window.removeEventListener('mousemove', resize);
     window.removeEventListener('mouseup', stopResize);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Recupera os dados do usuário armazenados
+    const usuarioData = sessionStorage.getItem("usuario");
+
+    if (usuarioData) {
+        const usuario = JSON.parse(usuarioData);
+    } else {
+        console.warn("Nenhum dado de usuário encontrado.");
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const menuIcon = document.getElementById("menu-icon");
+    const nav = document.querySelector("nav");
+
+    menuIcon.addEventListener("click", function () {
+        nav.classList.toggle("active"); // Abre/fecha o menu ao clicar
+    });
+
+    // Fecha o menu se clicar fora dele
+    document.addEventListener("click", function (event) {
+        if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
+            nav.classList.remove("active");
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const opcoesEstoque = document.getElementById('opcoesEstoque');
+    const opcoesVendas = document.getElementById('opcoesVendas');
+    const usuario = JSON.parse(sessionStorage.getItem("usuario"));
+
+    function verificarPermissaoEstoque() {
+        if (!usuario) {
+            alert('Usuário não autenticado!');
+            return false;
+        }
+        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+        const cargosPermitidos = ['admin', 'estoque'];
+
+        if (!cargosPermitidos.includes(cargoNormalizado)) {
+            alert('Você não tem permissão para acessar esta página!');
+            return false;
+        }
+        return true;
+    }
+
+    function verificarPermissaoVendas() {
+        if (!usuario) {
+            alert('Usuário não autenticado!');
+            return false;
+        }
+        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+        const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
+
+        if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
+            alert('Você não tem permissão para acessar esta página!');
+            return false;
+        }
+        return true;
+    }
+
+    function adicionarLinks(lista, links, verificarPermissao, outraLista) {
+
+        outraLista.innerHTML = '';
+
+        lista.innerHTML = '';
+
+        if (!verificarPermissao()) return;
+
+        lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
+        links.forEach(link => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+
+            li.querySelector('a').addEventListener('click', function (e) {
+                if (!verificarPermissao()) {
+                    e.preventDefault();
+                    lista.innerHTML = '';
+                }
+            });
+
+            lista.appendChild(li);
+        });
+    }
+
+    document.getElementById('estoqueLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        adicionarLinks(opcoesEstoque, [
+            { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
+            { url: '/pedidos', texto: 'Status de Pedido', icone: '📜' }
+        ], verificarPermissaoEstoque, opcoesVendas);
+    });
+
+    document.getElementById('vendasLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        adicionarLinks(opcoesVendas, [
+            { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
+            { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
+        ], verificarPermissaoVendas, opcoesEstoque);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Recupera os dados do usuário armazenados
+    const usuarioData = sessionStorage.getItem("usuario");
+
+    if (!usuarioData) {
+        alert("Usuário não autenticado! Redirecionando para a página de login...");
+        window.location.href = "/";
+        return;
+    }
+    
+    const usuario = JSON.parse(usuarioData);
+
+    // Verifica se o campo Cargo está vazio
+    if (!usuario.Cargo || usuario.Cargo.trim() === "") {
+        alert("Cargo não definido! Redirecionando para a página de login...");
+        window.location.href = "/";
+        return;
+    }
+
+    // Se o Cargo não for 'admin', redireciona para o portal
+    if (usuario.Cargo.trim().toLowerCase() !== "admin") {
+        alert("Acesso restrito! Apenas administradores podem acessar esta página. Redirecionando para o portal...");
+        window.location.href = "/portal";
+        return;
+    }
+
+    // Caso passe nas validações, o usuário permanece na página /fiscal
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const homeIcon = document.getElementById("home-icon");
+    const exitIcon = document.getElementById("exit-icon");
+
+    // Redirecionamento para /portal ao clicar no ícone de home
+    homeIcon.addEventListener("click", function () {
+        window.location.href = "/portal";
+    });
+
+    // Redirecionamento para / e limpeza do sessionStorage ao clicar no ícone de saída
+    exitIcon.addEventListener("click", function () {
+        sessionStorage.clear(); // Remove todas as informações do sessionStorage
+        window.location.href = "/"; // Redireciona para a página inicial
+    });
+});

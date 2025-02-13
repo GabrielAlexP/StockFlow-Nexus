@@ -16,8 +16,9 @@ body {
     background-color: #0d0d0d;
     color: #d0d0d0;
     overflow: auto;
-    padding-top: 30px;
+    padding-top: 0px;
     padding-bottom: 80px;
+    margin-top: 0px;
 }
 
 .container {
@@ -420,12 +421,16 @@ h1 {
 }
 
 header {
+    position: fixed;
     background: #2d2c3e;
     width: 100%;
     position: relative;
     height: 100px;
     padding: 0 20px;
-    z-index: 1100; /* Garante que o header fique acima da navbar */
+    z-index: 1100;
+    top: 0;
+    left: 0;
+    /* Garante que o header fique acima da navbar */
 }
 
 header h1 {
@@ -506,16 +511,20 @@ header h1 {
 
 nav {
     position: fixed;
-    top: 80px; /* Ajusta a navegação para começar abaixo do header */
-    left: -250px; /* Manter a navegação fora da tela inicialmente */
+    top: 80px;
+    /* Ajusta a navegação para começar abaixo do header */
+    left: -250px;
+    /* Manter a navegação fora da tela inicialmente */
     width: 220px;
-    height: calc(100vh - 80px); /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
+    height: calc(100vh - 80px);
+    /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
     background-color: #1a1a22;
     color: white;
     box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
     transition: left 0.3s ease-in-out;
     z-index: 1000;
-    padding-top: 20px; /* Ajuste do padding para não sobrepor o conteúdo da navbar */
+    padding-top: 20px;
+    /* Ajuste do padding para não sobrepor o conteúdo da navbar */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -523,7 +532,8 @@ nav {
 
 /* Ativar navegação */
 nav.active {
-    left: 0; /* Quando ativado, a navegação move-se para a esquerda */
+    left: 0;
+    /* Quando ativado, a navegação move-se para a esquerda */
 }
 
 /* Parte superior da navbar */
@@ -579,6 +589,27 @@ nav ul li a:hover {
 
 .nav-inferior {
     flex-grow: 1;
-    padding-top: 270px; 
+    padding-top: 270px;
     text-align: center;
 }
+
+.btn-clear {
+    position: relative;
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: #FFF;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    text-align: center;
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-clear:hover {
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
+} 
+ 

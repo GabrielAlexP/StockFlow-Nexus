@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const opcoesEstoque = document.getElementById('opcoesEstoque');
     const opcoesVendas = document.getElementById('opcoesVendas');
     const usuario = JSON.parse(sessionStorage.getItem("usuario"));
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidos = ['admin', 'estoque'];
-        
+
         if (!cargosPermitidos.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-        
+
         if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -34,38 +34,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-
         outraLista.innerHTML = '';
-
         lista.innerHTML = '';
-
         if (!verificarPermissao()) return;
 
+        // Adiciona o título da navegação
         lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
+
         links.forEach(link => {
+            // Se for o link /fiscal, só adiciona se o usuário for admin
+            if (link.url === '/fiscal') {
+                if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
+                    return; // Não adiciona o link para usuários que não são admin
+                }
+            }
+
             const li = document.createElement('li');
             li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-
             li.querySelector('a').addEventListener('click', function(e) {
                 if (!verificarPermissao()) {
                     e.preventDefault();
                     lista.innerHTML = '';
                 }
             });
-
             lista.appendChild(li);
         });
     }
 
-    document.getElementById('estoqueLink').addEventListener('click', function(e) {
+    document.getElementById('estoqueLink').addEventListener('click', function (e) {
         e.preventDefault();
         adicionarLinks(opcoesEstoque, [
             { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-            { url: '/pedidos', texto: 'Status de Pedido', icone: '📜' }
+            { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
+            { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
         ], verificarPermissaoEstoque, opcoesVendas);
     });
 
-    document.getElementById('vendasLink').addEventListener('click', function(e) {
+    document.getElementById('vendasLink').addEventListener('click', function (e) {
         e.preventDefault();
         adicionarLinks(opcoesVendas, [
             { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
@@ -91,4 +96,41 @@ document.addEventListener("DOMContentLoaded", function () {
                                                       <p>Selecione uma opção na barra de navegação.</p>`;
 
     document.getElementById("cargoUsuario").textContent = usuario.Cargo.charAt(0).toUpperCase() + usuario.Cargo.slice(1).toLowerCase();
+});
+
+function adicionarLinks(lista, links, verificarPermissao, outraLista) {
+    outraLista.innerHTML = '';
+    lista.innerHTML = '';
+    if (!verificarPermissao()) return;
+    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
+    links.forEach(link => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+        li.querySelector('a').addEventListener('click', function (e) {
+            // Bloqueia acesso à página fiscal se o cargo não for admin
+            if (link.url === '/fiscal') {
+                const cargo = usuario.Cargo.trim().toLowerCase();
+                if (cargo !== 'admin') {
+                    e.preventDefault();
+                    alert('Você não tem permissão para acessar a página Fiscal.');
+                    return;
+                }
+            }
+            if (!verificarPermissao()) {
+                e.preventDefault();
+                lista.innerHTML = '';
+            }
+        });
+        lista.appendChild(li);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const exitIcon = document.getElementById("exit-icon");
+
+    // Redirecionamento para / e limpeza do sessionStorage ao clicar no ícone de saída
+    exitIcon.addEventListener("click", function () {
+        sessionStorage.clear(); // Remove todas as informações do sessionStorage
+        window.location.href = "/"; // Redireciona para a página inicial
+    });
 });

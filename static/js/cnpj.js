@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const opcoesEstoque = document.getElementById('opcoesEstoque');
     const opcoesVendas = document.getElementById('opcoesVendas');
     const usuario = JSON.parse(sessionStorage.getItem("usuario"));
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidos = ['admin', 'estoque'];
-        
+
         if (!cargosPermitidos.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-        
+
         if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -211,38 +211,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-
         outraLista.innerHTML = '';
-
         lista.innerHTML = '';
-
         if (!verificarPermissao()) return;
 
+        // Adiciona o título da navegação
         lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
+
         links.forEach(link => {
+            // Se for o link /fiscal, só adiciona se o usuário for admin
+            if (link.url === '/fiscal') {
+                if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
+                    return; // Não adiciona o link para usuários que não são admin
+                }
+            }
+
             const li = document.createElement('li');
             li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-
             li.querySelector('a').addEventListener('click', function(e) {
                 if (!verificarPermissao()) {
                     e.preventDefault();
                     lista.innerHTML = '';
                 }
             });
-
             lista.appendChild(li);
         });
     }
 
-    document.getElementById('estoqueLink').addEventListener('click', function(e) {
+    document.getElementById('estoqueLink').addEventListener('click', function (e) {
         e.preventDefault();
         adicionarLinks(opcoesEstoque, [
             { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-            { url: '/pedidos', texto: 'Status de Pedido', icone: '📜' }
+            { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
+            { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
         ], verificarPermissaoEstoque, opcoesVendas);
     });
 
-    document.getElementById('vendasLink').addEventListener('click', function(e) {
+    document.getElementById('vendasLink').addEventListener('click', function (e) {
         e.preventDefault();
         adicionarLinks(opcoesVendas, [
             { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },

@@ -128,13 +128,11 @@ def atualizar_dados():
             inscricao_raw = registrations[0].get("number", "")
             inscricao_estadual = formatar_inscricao_estadual(inscricao_raw) if inscricao_raw else ""
             inscricao_habilitada = registrations[0].get("enabled", False)
-            tipo_ie = registrations[0].get("type", {}).get("text", "")
         else:
             inscricao_estadual = "NÃO CONSTA"
             inscricao_habilitada = False
-            tipo_ie = "IE Não Contribuinte"  # Força para que indIEDest seja 2
 
-        # Condicionais
+        # Condicionais atualizadas
         carac_tributacao = 3 if inscricao_habilitada else 7
         finalidade = 0 if inscricao_habilitada else 2
         consumidor_final = 0 if inscricao_habilitada else 1
@@ -142,9 +140,10 @@ def atualizar_dados():
         simples_optant = dados_consulta.get("company", {}).get("simples", {}).get("optant", False)
         simples_valor = 1 if simples_optant else 0
 
-        if "IE Não Contribuinte" in tipo_ie:
+        # Nova lógica baseada em carac_tributacao
+        if carac_tributacao == 7:
             indIEdest_valor = 2
-        elif "IE Normal" in tipo_ie:
+        elif carac_tributacao == 3:
             indIEdest_valor = 0
         else:
             indIEdest_valor = None
