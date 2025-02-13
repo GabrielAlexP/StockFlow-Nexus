@@ -1,21 +1,51 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos Não Entregues</title>
     <link rel="stylesheet" href="../static/css/Status.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="/favicon.png">
 </head>
+
 <body>
-    <div id="timer">
-        05:00 para atualizar a página
-    </div>
-    <h2>Status de Pedido</h2>
-    <div class="legenda">
-        <div class="legenda-item"><span class="cor-verde"></span> Liberado</div>
-        <div class="legenda-item"><span class="cor-amarela"></span> Entregue part.</div>
-    </div>
+    <header>
+        <h1>Status de Pedido</h1>
+        <div class="icon-container">
+            <div class="left-icons">
+                <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+                <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
+                <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+            </div>
+            <div class="right-icons">
+                <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
+            </div>
+        </div>
+
+        <div id="timer">
+            05:00 para atualizar a página
+        </div>
+
+        <div class="legenda">
+            <div class="legenda-item"><span class="cor-verde"></span> Liberado</div>
+            <div class="legenda-item"><span class="cor-amarela"></span> Entregue part.</div>
+        </div>
+    </header>
+
+    <nav id="sidebar">
+        <ul class="nav-superior">
+            <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+            <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+        </ul>
+        <ul class="nav-inferior">
+            <li id="opcoesEstoque"></li>
+            <li id="opcoesVendas"></li>
+        </ul>
+    </nav>
+
+
     <div id="pedidos-nao-entregues" class="detalhes">
         <table id="tabela-pedidos">
             <thead>
@@ -50,4 +80,5 @@
     </div>
     <script src="../static/js/status.js"></script>
 </body>
+
 </html>

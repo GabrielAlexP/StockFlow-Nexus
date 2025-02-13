@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consulta de CNPJ</title>
+  <!-- Fonte Montserrat do Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../static/css/cnpj.css">
+</head>
+
+<body>
+  <header>
+    <h1>Consulta CNPJ</h1>
+    <div class="icon-container">
+      <div class="left-icons">
+        <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+        <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
+        <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+      </div>
+      <div class="right-icons">
+        <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV BAR -->
+  <nav id="sidebar">
+    <ul class="nav-superior">
+      <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+      <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+    </ul>
+    <ul class="nav-inferior">
+      <li id="opcoesEstoque"></li>
+      <li id="opcoesVendas"></li>
+    </ul>
+  </nav>
+
+  <div class="input-container">
+    <form id="search-form" action="#" method="get">
+      <div class="form-group">
+        <input type="text" id="cnpj" name="cnpj" placeholder="Consulte Aqui" maxlength="18">
+        <button type="submit" class="btn-three">Pesquisar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="data-container" id="data-container">
+    <div class="data-row">
+      <div class="data-box data-razao">
+        <label>Razão Social:</label>
+        <div class="data-field"></div>
+      </div>
+      <div class="data-box data-endereco">
+        <label>Endereço:</label>
+        <div class="data-field"></div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-box data-municipio">
+        <label>Municipio:</label>
+        <div class="data-field"></div>
+      </div>
+      <div class="data-box data-bairro">
+        <label>Bairro:</label>
+        <div class="data-field"></div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-box data-telefone">
+        <label>Telefone:</label>
+        <div class="data-field"></div>
+      </div>
+      <div class="data-box data-uf">
+        <label>UF:</label>
+        <div class="data-field"></div>
+      </div>
+      <div class="data-box data-cep">
+        <label>CEP:</label>
+        <div class="data-field"></div>
+      </div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-box data-inscricao">
+        <label>Inscrição Estadual:</label>
+        <div class="data-field"></div>
+      </div>
+    </div>
+    <div class="data-row">
+      <div class="data-box data-inscricao">
+        <button class="btn-update" id="atualizar">Atualizar Dados</button>
+      </div>
+    </div>
+    <div class="data-row">
+      <div class="data-box data-inscricao">
+        <button class="btn-clear" id="limpar">Limpar Dados</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../static/js/cnpj.js"></script>
+</body>
+
+</html>

@@ -6,9 +6,36 @@
     <title>Consulta de Estoque</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/css/estoque.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="/favicon.png">
 </head>
 <body>
+    <header>
+        <h1>Consulta Estoque</h1>
+        <div class="icon-container">
+          <div class="left-icons">
+            <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+            <div class="icon icon-fill"><i class="fa fa-home"></i></div>
+            <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+          </div>
+          <div class="right-icons">
+            <div class="icon icon-collapse"><i class="fa fa-sign-in"></i></div>
+          </div>
+        </div>
+      </header>
+    
+      <!-- NAV BAR -->
+      <nav id="sidebar">
+        <ul class="nav-superior">
+          <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+          <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+        </ul>
+        <ul class="nav-inferior">
+          <li id="opcoesEstoque"></li>
+          <li id="opcoesVendas"></li>
+        </ul>
+      </nav>
+    
     <div class="container" id="search-container">
         <h1>Consulta de Estoque</h1>
         <div class="search-bar">

@@ -1,0 +1,201 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Estilo global */
+body {
+    background-color: #1c1e26;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-size: 14px;
+    /* Base font-size */
+}
+
+/* Topo com botões organizados em três grupos */
+.top-bar {
+    background-color: #2d2f36;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-left {
+    display: flex;
+    gap: 8px;
+}
+
+.top-center {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    margin-right: 390px;
+}
+
+.top-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.top-bar button {
+    background-color: #4caf50;
+    border: none;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.top-bar button:hover {
+    background-color: #45a049;
+}
+
+/* Container ajustável para preview e inputs */
+.resizable-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Área de pré-visualização */
+.preview-area {
+    background-color: #272b33;
+    padding: 12px;
+    margin: 0 8px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    height: 60%;
+    /* Altura inicial */
+    border-radius: 5px;
+    border: 1px solid #4caf50;
+}
+
+/* Divider para ajuste */
+.divider {
+    height: 5px;
+    background-color: #4caf50;
+    cursor: ns-resize;
+}
+
+/* Container das seções de inputs */
+.bottom-container {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background-color: #1c1e26;
+    overflow-y: auto;
+    height: 40%;
+    /* Altura inicial */
+    justify-content: space-between;
+}
+
+/* Estilo das seções */
+.section {
+    background-color: #2d2f36;
+    border: 1px solid #4caf50;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    max-width: 22%;
+    min-width: 22%;
+    border-radius: 5px;
+}
+
+.section h3 {
+    margin: 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #4caf50;
+    font-size: 15px;
+}
+
+/* Agrupamento de label e input na mesma linha */
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+    flex-wrap: nowrap;
+    /* Evita quebras de linha */
+}
+
+.form-row label {
+    width: 90px;
+    /* Largura padrão para os labels */
+}
+
+.form-row input {
+    flex: 1;
+    padding: 4px;
+    border: 1px solid #4caf50;
+    border-radius: 3px;
+    background-color: #393c45;
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+/* Estilo especial para linhas com inputs pequenos */
+.form-row.small-form-row label {
+    width: auto;
+    /* Permite que o label ocupe o espaço necessário */
+    white-space: nowrap;
+}
+
+.form-row.small-form-row .small-inline {
+    width: 190px;
+    /* Largura fixa para o contêiner dos inputs (3 x 60px + gaps) */
+    display: flex;
+    gap: 4px;
+}
+
+.small-inline input {
+    flex: 0 0 60px;
+    max-width: 60px;
+    padding: 4px;
+    border: 1px solid #4caf50;
+    border-radius: 3px;
+    background-color: #393c45;
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+/* Grupos de campos para as origens */
+.origem-group {
+    border: 1px solid #4caf50;
+    padding: 6px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+}
+
+.origem-group h4 {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+/* Botões nas seções */
+.section button {
+    background-color: #4caf50;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.section button:hover {
+    background-color: #45a049;
+}

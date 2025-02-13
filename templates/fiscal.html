@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface para Cadastro e Pré-visualização</title>
+    <link rel="stylesheet" href="../static/css/fiscal.css">
+</head>
+
+<body>
+    <!-- Topo com botões: Preview (esquerda), Inserir no banco (centro) e Apagar Dados (direita) -->
+    <div class="top-bar">
+        <div class="top-left">
+            <button onclick="mostrarPreview('PerfilFiscal')">PerfilFiscal</button>
+            <button onclick="mostrarPreview('PerfilFiscal_Empresa')">PerfilFiscal_Empresa</button>
+            <button onclick="mostrarPreview('PerfilFiscal_NCM')">PerfilFiscal_NCM</button>
+            <button onclick="mostrarPreview('PerfilFiscal_UF')">PerfilFiscal_UF</button>
+        </div>
+        <div class="top-center">
+            <button onclick="inserirNoBanco()">Inserir no banco de dados</button>
+        </div>
+        <div class="top-right">
+            <button onclick="apagarDados()">Apagar Dados</button>
+        </div>
+    </div>
+
+    <!-- Container ajustável para a área de pré-visualização e inputs -->
+    <div class="resizable-container">
+        <!-- Área de pré-visualização -->
+        <div class="preview-area" id="preview">
+            Pré-visualização
+
+        </div>
+        <!-- Barra para ajuste (divider) -->
+        <div class="divider" id="divider"></div>
+        <!-- Seções dos inputs -->
+        <div class="bottom-container">
+            <!-- Seção PerfilFiscal -->
+            <div class="section" id="sec-perfil">
+                <h3>PerfilFiscal</h3>
+                <div class="form-row">
+                    <label for="ncm">NCM:</label>
+                    <input type="text" id="ncm">
+                </div>
+                <div class="form-row">
+                    <label for="cfop">CFOP:</label>
+                    <input type="text" id="cfop">
+                </div>
+                <div class="form-row">
+                    <label for="num_origens">Número de Origens:</label>
+                    <input type="number" id="num_origens" min="1">
+                    <button onclick="gerarCamposOrigens()">Identificar</button>
+                </div>
+                <!-- Container para os campos dinâmicos de cada origem -->
+                <div id="origens-container"></div>
+                <button onclick="gerarPerfilFiscal()">Gerar PerfilFiscal</button>
+            </div>
+
+            <!-- Seção PerfilFiscal_Empresa -->
+            <div class="section" id="sec-empresa">
+                <h3>PerfilFiscal_Empresa</h3>
+                <div class="form-row">
+                    <label for="empresa">Empresa:</label>
+                    <input type="text" id="empresa">
+                </div>
+                <button onclick="gerarPerfilFiscalEmpresa()">Gerar PerfilFiscal_Empresa</button>
+            </div>
+
+            <!-- Seção PerfilFiscal_NCM -->
+            <div class="section" id="sec-ncm">
+                <h3>PerfilFiscal_NCM</h3>
+                <button onclick="gerarPerfilFiscalNCM()">Gerar PerfilFiscal_NCM</button>
+            </div>
+
+            <!-- Seção PerfilFiscal_UF -->
+            <div class="section" id="sec-uf">
+                <h3>PerfilFiscal_UF</h3>
+                <div class="form-row">
+                    <label for="uf">UF:</label>
+                    <input type="text" id="uf">
+                </div>
+                <button onclick="gerarPerfilFiscalUF()">Gerar PerfilFiscal_UF</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../static/js/fiscal.js"></script>
+</body>
+
+</html>

@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('vendasLink').addEventListener('click', function(e) {
         e.preventDefault();
         adicionarLinks(opcoesVendas, [
-            { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' }
+            { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
+            { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
         ], verificarPermissaoVendas, opcoesEstoque);
     });
 });
