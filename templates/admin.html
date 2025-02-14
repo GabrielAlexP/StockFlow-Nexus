@@ -127,6 +127,7 @@
                         <select id="personalizado" class="metas-select" style="display: none;"></select>
                     </div>
                     <!-- Mensagem da Meta -->
+                    <p id="valor-meta" class="mensagem-meta">Sua meta este mês é Z</p>
                     <p id="mensagem-meta" class="mensagem-meta">Falta X para alcançar a meta</p>
                     <p id="mensagem-venda" class="mensagem-venda">Você já vendeu Y</p>
                 </div>
@@ -531,6 +532,146 @@
             document.getElementById('mes').addEventListener('change', carregarGraficoVendas);
 
             carregarGraficoVendas();
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            async function carregarMeta() {
+                const empresaId = document.getElementById('empresa-select').value;
+                const vendedorId = document.getElementById('vendedor-selecao').value;
+                if (!empresaId) return;
+
+                try {
+                    // Chama a API de meta independentemente do vendedor ser "Total" ou não
+                    const metaResponse = await fetch(`/api/meta?empresa_id=${empresaId}&vendedor_id=${vendedorId}`);
+                    if (!metaResponse.ok) throw new Error('Erro ao carregar meta');
+                    const metaData = await metaResponse.json();
+                    const meta = parseFloat(metaData.Meta) || 0;
+
+                    // Busca o total de vendas
+                    const ano = document.getElementById('ano').value;
+                    const mes = document.getElementById('mes').value;
+                    const status = document.getElementById('status-toggle').checked ? 'S' : 'V';
+                    const vendaResponse = await fetch(`/api/vendas_total?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+                    if (!vendaResponse.ok) throw new Error('Erro ao carregar total de vendas');
+                    const vendaData = await vendaResponse.json();
+                    const vendaTotal = parseFloat(vendaData.total) || 0;
+
+                    const falta = meta - vendaTotal;
+
+                    // Atualiza os textos com os valores calculados
+                    document.getElementById('valor-meta').textContent = `Sua meta este mês é ${meta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    document.getElementById('mensagem-meta').textContent = `Falta ${falta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para alcançar a meta`;
+                    document.getElementById('mensagem-venda').textContent = `Você já vendeu ${vendaTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+
+                    if (vendaTotal >= meta) {
+                        document.getElementById('mensagem-meta').textContent = "Parabéns, você bateu a meta!";
+                    } else {
+                        document.getElementById('mensagem-meta').textContent = `Falta ${falta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} para alcançar a meta`;
+                    }
+
+                    document.getElementById('mensagem-venda').textContent = `Você já vendeu ${vendaTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    // Renderiza o gráfico de rosca
+                    const ctxRosca = document.getElementById('grafico-rosca').getContext('2d');
+                    if (window.graficoRosca) {
+                        window.graficoRosca.destroy();
+                    }
+                    const achieved = Math.min(vendaTotal, meta); // se as vendas excederem a meta, consideramos no máximo a meta
+                    const missing = meta - achieved;
+                    window.graficoRosca = new Chart(ctxRosca, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Batido', 'Falta'],
+                            datasets: [{
+                                data: [achieved, missing],
+                                backgroundColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                                hoverBackgroundColor: ['rgba(54, 162, 235, 0.8)', 'rgba(255, 99, 132, 0.8)']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error(error);
+                    alert(error.message);
+                }
+            }
+
+            // Registra os event listeners necessários para atualizar a meta e o gráfico
+            document.getElementById('empresa-select').addEventListener('change', carregarMeta);
+            document.getElementById('vendedor-selecao').addEventListener('change', carregarMeta);
+            document.getElementById('status-toggle').addEventListener('change', carregarMeta);
+            document.getElementById('ano').addEventListener('change', carregarMeta);
+            document.getElementById('mes').addEventListener('change', carregarMeta);
+
+            carregarMeta();
+        });
+
+        async function buscarPedido() {
+            const pedidoInput = document.getElementById('busca-pedido').value.trim();
+            const empresaId = document.getElementById('empresa-select').value;
+            if (!pedidoInput || !empresaId) {
+                alert("Preencha o número do pedido e selecione a empresa.");
+                return;
+            }
+            try {
+                const response = await fetch(`/api/buscar_pedido?pedido=${pedidoInput}&empresa_id=${empresaId}`);
+                if (!response.ok) throw new Error("Erro ao buscar pedido");
+                const data = await response.json();
+
+                // Atualiza a tabela de pedidos
+                const tbodyPedido = document.getElementById('tabela-corpo');
+                tbodyPedido.innerHTML = "";
+                if (data.order && Object.keys(data.order).length > 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${data.order.PEDIDO}</td>
+                <td>${data.order.NomeCliente}</td>
+                <td>${Number(data.order.Valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td>${data.order.DataVenda}</td>
+            `;
+                    tbodyPedido.appendChild(tr);
+                } else {
+                    tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
+                }
+
+                // Atualiza a tabela de produtos
+                const tbodyProdutos = document.getElementById('produtos-corpo');
+                tbodyProdutos.innerHTML = "";
+                if (data.products && data.products.length > 0) {
+                    data.products.forEach(product => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                    <td>${product.IDProduto}</td>
+                    <td>${product.Descrição}</td>
+                    <td>${product.Quantidade}</td>
+                    <td>${Number(product.Valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td>${Number(product.Total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                `;
+                        tbodyProdutos.appendChild(tr);
+                    });
+                } else {
+                    tbodyProdutos.innerHTML = "<tr><td colspan='5'>Nenhum produto encontrado.</td></tr>";
+                }
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // Evento para o botão de busca
+        document.getElementById('buscar-pedido').addEventListener('click', buscarPedido);
+        // Permite buscar pressionando Enter no campo de input
+        document.getElementById('busca-pedido').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                buscarPedido();
+            }
         });
     </script>
 </body>

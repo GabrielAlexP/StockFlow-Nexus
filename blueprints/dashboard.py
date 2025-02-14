@@ -324,3 +324,105 @@ def get_grafico_vendas():
         return jsonify(vendas)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/api/meta', methods=['GET'])
+def get_meta():
+    empresa_id = request.args.get('empresa_id')
+    vendedor_id = request.args.get('vendedor_id')
+    if not empresa_id or not vendedor_id:
+        return jsonify({"error": "ID da empresa e vendedor são obrigatórios"}), 400
+    try:
+        empresa_id = int(empresa_id)
+    except ValueError:
+        return jsonify({"error": "ID da empresa deve ser numérico"}), 400
+    try:
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        # Tratar vendedor "Total" de forma case-insensitive
+        if vendedor_id.lower() == "total":
+            query = "SELECT FAX FROM Vendedor WHERE IDEmpresa = ?"
+            cursor.execute(query, (empresa_id,))
+            rows = cursor.fetchall()
+            conn.close()
+            meta = 0
+            for row in rows:
+                if row[0] is not None:
+                    try:
+                        meta += float(row[0])
+                    except Exception:
+                        # Se a conversão falhar, ignoramos o valor
+                        pass
+            return jsonify({"Meta": meta})
+        else:
+            try:
+                vendedor_id_int = int(vendedor_id)
+            except ValueError:
+                return jsonify({"error": "ID do vendedor deve ser numérico ou 'Total'"}), 400
+            query = "SELECT FAX FROM Vendedor WHERE IDEmpresa = ? AND ID_VENDEDOR = ?"
+            cursor.execute(query, (empresa_id, vendedor_id_int))
+            row = cursor.fetchone()
+            conn.close()
+            if row is None:
+                return jsonify({"error": "Vendedor não encontrado"}), 404
+            try:
+                meta = float(row[0])
+            except Exception:
+                meta = 0
+            return jsonify({"Meta": meta})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/api/buscar_pedido', methods=['GET'])
+def buscar_pedido():
+    pedido = request.args.get('pedido')
+    empresa_id = request.args.get('empresa_id')
+    if not pedido or not empresa_id:
+        return jsonify({"error": "Parâmetros 'pedido' e 'empresa_id' são obrigatórios."}), 400
+    try:
+        empresa_id = int(empresa_id)
+    except ValueError:
+        return jsonify({"error": "ID da empresa deve ser numérico."}), 400
+    try:
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        
+        # Query para buscar dados do pedido
+        query_venda = """
+        SELECT PEDIDO, NomeCliente, Valor, DataVenda 
+        FROM Venda 
+        WHERE PEDIDO = ? AND IDEmpresa = ?
+        """
+        cursor.execute(query_venda, (pedido, empresa_id))
+        venda_row = cursor.fetchone()
+        if venda_row:
+            order = {
+                "PEDIDO": venda_row.PEDIDO,
+                "NomeCliente": venda_row.NomeCliente,
+                "Valor": venda_row.Valor,
+                "DataVenda": venda_row.DataVenda.strftime("%d/%m/%Y") if hasattr(venda_row.DataVenda, 'strftime') else venda_row.DataVenda
+            }
+        else:
+            order = {}
+        
+        # Query para buscar produtos do pedido
+        query_produtos = """
+        SELECT IDProduto, Descrição, Quantidade, Valor, (Quantidade * Valor) AS Total 
+        FROM Produto_Venda 
+        WHERE PEDIDO = ? AND IDEmpresa = ? 
+        """
+        cursor.execute(query_produtos, (pedido, empresa_id))
+        produtos_rows = cursor.fetchall()
+        produtos = []
+        for row in produtos_rows:
+            produtos.append({
+                "IDProduto": row.IDProduto,
+                "Descrição": row[1],
+                "Quantidade": row.Quantidade,
+                "Valor": row.Valor,
+                "Total": row.Total
+            })
+        
+        conn.close()
+        return jsonify({"order": order, "products": produtos})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
