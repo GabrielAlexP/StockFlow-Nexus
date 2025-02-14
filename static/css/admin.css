@@ -1,0 +1,853 @@
+/* Importar fonte Bebas Neue */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+/* Estilo Geral */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1d1c1c;
+    color: #ffffff;
+}
+
+canvas {
+    width: 100% !important; /* Define o tamanho do canvas sempre relativo ao pai */
+    height: auto !important; /* Altura ajustada automaticamente */
+}
+
+/* Estilo do Cabeçalho */
+
+header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo do Contêiner de Filtros */
+.filtros {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px; /* Espaço entre os elementos */
+    margin: 20px 0; /* Margem superior e inferior */
+    padding: 10px;
+}
+
+/* Alinhar rótulos e inputs */
+.filtros div {
+    display: flex;
+    flex-direction: column; /* Rótulo acima do input */
+    align-items: center;
+    gap: 5px; /* Espaço entre rótulo e input */
+}
+
+.filtros label {
+    font-size: 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo da Seleção de Empresas */
+.filtro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px; /* Espaço entre o rótulo e o select */
+    padding: 20px;
+    width: 350px;
+}
+
+/* Estilo do rótulo */
+.filtro label {
+    font-size: 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo do select */
+.filtro select {
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #22e119;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Efeito ao passar o mouse e foco */
+.filtro select:hover,
+.filtro select:focus {
+    outline: none;
+    background-color: #3a3a3a;
+    border-color: #22e119;
+    box-shadow: 0 0 10px #22e119;
+}
+
+/* Estilo para as opções do select */
+.filtro select option {
+    background-color: #2c2c2c;
+    color: #ffffff;
+}
+
+/* Estilo da Seleção de Vendedor */
+.vendedor-selecao {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    width: 350px;
+}
+
+.vendedor-selecao select {
+    font-size: 18px;
+    padding: 12px;
+    padding-right: 40px;
+    border-radius: 8px;
+    border: 1px solid #22e119;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Efeito ao Passar o Mouse e Foco */
+.vendedor-selecao select:hover,
+.vendedor-selecao select:focus {
+    outline: none;
+    background-color: #3a3a3a;
+    border-color: #22e119;
+    box-shadow: 0 0 10px #22e119;
+}
+
+/* Estilo da Seleção do Mês */
+.selecao-mes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    width: 350px;
+    position: relative; /* Necessário para posicionar a seta */
+}
+
+/* Estilo da caixa de seleção do mês */
+.input-mes {
+    appearance: none; 
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    color: #ffffff;
+    background-color: #2c2c2c;
+    border: 1px solid #22e119;
+    border-radius: 8px;
+    padding: 14px 16px; /* Aumentei o padding */
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; /* Aumentei o tamanho da fonte */
+    width: 100%; /* Aumentei a largura para 100% */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    position: relative; /* Necessário para posicionar a seta */
+}
+
+/* Efeito ao passar o mouse e foco na caixa de seleção */
+.input-mes:hover,
+.input-mes:focus {
+    background-color: #3a3a3a;
+    outline: none;
+    border-color: #22e119;
+    box-shadow: 0 0 10px #22e119;
+}
+
+/* Estilo para as opções do select */
+.input-mes option {
+    background-color: #2c2c2c;
+    color: #ffffff;
+}
+
+/* Adicionando a seta para baixo */
+.input-mes::after {
+    content: '▼'; /* Símbolo de seta para baixo */
+    font-size: 20px;
+    color: #22e119; /* Cor da seta */
+    position: absolute;
+    right: 16px; /* Posiciona a seta à direita */
+    top: 50%;
+    transform: translateY(-50%); /* Ajuste vertical para centralizar */
+    pointer-events: none; /* Faz com que a seta não interfira na interação com o select */
+}
+
+/* Estilo do texto "até" (se necessário) */
+.selecao-mes span {
+    font-size: 20px; /* Aumentei o tamanho da fonte */
+    color: #ffffff;
+    font-family: 'Bebas Neue', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    margin: 0 10px; /* Aumentei o espaçamento */
+    font-weight: bold; /* Deixei o texto em negrito */
+}
+
+/* Estilo da Seleção de Ano */
+.selecao-ano {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    width: 350px;
+}
+
+/* Estilo do campo de entrada de ano */
+.input-ano {
+    color: #ffffff;
+    background-color: #2c2c2c;
+    border: 1px solid #22e119;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Efeito ao passar o mouse e foco no campo de entrada */
+.input-ano:hover,
+.input-ano:focus {
+    background-color: #3a3a3a;
+    outline: none;
+    border-color: #22e119;
+    box-shadow: 0 0 10px #22e119;
+}
+
+/* Caixa de Dados de Desempenho */
+.caixas-dados {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    gap: 20px;
+}
+
+.caixa {
+    background-color: #2c2c2c;
+    border: 1px solid #22e119;
+    border-radius: 12px;
+    padding: 20px;
+    width: 22%;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s;
+}
+
+.caixa:hover {
+    transform: scale(1.05);
+}
+
+.caixa h3 {
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.caixa p {
+    font-size: 26px;
+    font-weight: bold;
+    color: #22e119;
+}
+
+/* Área Principal */
+.area-principal {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+/* Seção Esquerda */
+.left-page {
+    width: 48%;
+    display: flex;
+    align-items: center; /* Alinha os itens horizontalmente */
+}
+
+.area-metas {
+    display: flex;
+}
+
+/* Seção Direita */
+.right-page {
+    width: 48%;
+}
+
+/* Barra Vertical */
+.barra-vertical {
+    width: 2px;
+    background-color: #22e119;
+    height: auto;
+    position: relative;
+    top: 0;
+}
+
+/* Área de Busca */
+.area-busca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.area-busca label {
+    font-size: 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.input-busca {
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #22e119;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+.botao-busca {
+    font-size: 18px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #22e119;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+.botao-busca:hover {
+    background-color: #1a9e15;
+}
+
+/* Tabela de Pedidos */
+.tabela-pedidos, .tabela-produtos {
+    width: 100%;
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.tabela-pedidos table, .tabela-produtos table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-pedidos th, .tabela-pedidos td, .tabela-produtos th, .tabela-produtos td {
+    border: 1px solid #22e119;
+    padding: 10px;
+    text-align: left;
+    color: #ffffff;
+}
+
+.tabela-pedidos th, .tabela-produtos th {
+    background-color: #2c2c2c;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+}
+
+.tabela-pedidos td, .tabela-produtos td {
+    background-color: #1d1c1c;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tabela-produtos {
+    width: 100%;
+    margin-top: 20px;
+    max-height: 200px; /* Altura máxima para 5 itens */
+    overflow-y: auto; /* Barra de rolagem vertical */
+    border: 1px solid #22e119; /* Borda externa da tabela */
+}
+
+.tabela-produtos table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-produtos th, .tabela-produtos td {
+    border: 1px solid #22e119; /* Borda entre células */
+    padding: 10px;
+    text-align: left; /* Texto alinhado à esquerda */
+    color: #ffffff;
+}
+
+.tabela-produtos th {
+    background-color: #2c2c2c;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    position: sticky; /* Fixa o cabeçalho ao rolar */
+    top: 0;
+    z-index: 1;
+}
+
+.tabela-produtos td {
+    background-color: #1d1c1c;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    text-align: left; /* Corrige o alinhamento do texto */
+}
+
+.tabela-pedidos td {
+    background-color: #1d1c1c;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    text-align: left; /* Corrige o alinhamento do texto */
+}
+
+/* Personalização da barra de rolagem */
+.tabela-produtos::-webkit-scrollbar {
+    width: 8px; /* Largura da barra de rolagem */
+}
+
+.tabela-produtos::-webkit-scrollbar-thumb {
+    background-color: #22e119; /* Cor da barra */
+    border-radius: 4px;
+}
+
+.tabela-produtos::-webkit-scrollbar-track {
+    background-color: #1d1c1c; /* Fundo da barra */
+}
+
+/* Estilo dos Gráficos */
+.graficos {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.grafico-principal {
+    width: 100%; /* Ocupa toda a largura disponível */
+    height: 400px;
+    background-color: #1d1c1c;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; /* Espaçamento superior */
+}
+
+.grafico-principal canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.grafico-rosca {
+    width: 300px;
+    height: 300px;
+    background-color: #1d1c1c;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0; /* Remove margens externas */
+}
+
+.lado-grafico {
+    display: flex;
+    flex-direction: column; /* Alinha os itens verticalmente */
+    align-items: center; /* Centraliza os itens horizontalmente */
+    margin-left: 20px; /* Espaçamento à esquerda */
+}
+
+.metas-select {
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #22e119;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+.meta-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mensagem-meta {
+    margin-top: 15px; /* Espaçamento superior */
+    text-align: center; /* Centraliza o texto */
+    font-size: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    padding: 24px;
+}
+
+.mensagem-venda {
+    margin-top: 15px; /* Espaçamento superior */
+    text-align: center; /* Centraliza o texto */
+    font-size: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    padding: 24px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    .filtros {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filtro, .vendedor-selecao, .selecao-mes, .selecao-ano {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .caixas-dados {
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+    }
+
+    .caixa {
+        width: 100%;
+    }
+
+    .area-principal {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .left-page, .right-page {
+        width: 100%;
+    }
+
+    .tabela-pedidos, .tabela-produtos {
+        font-size: 14px;
+        overflow-x: auto;
+    }
+
+    .input-busca {
+        width: 100%;
+    }
+
+    .botao-busca {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 20px;
+    }
+
+    .filtros label, .area-busca label {
+        font-size: 18px;
+    }
+
+    .input-busca {
+        padding: 10px;
+    }
+
+    .botao-busca {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .caixa h3 {
+        font-size: 16px;
+    }
+
+    .caixa p {
+        font-size: 20px;
+    }
+}
+
+/* Estilo para o container do toggle */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Garante que o botão fique na extrema direita */
+    position: absolute; /* Permite que o botão seja posicionado com precisão */
+    right: 0; /* Alinha o botão à direita do container pai */
+    top: 10px; /* Distância do topo, você pode ajustar conforme necessário */
+    gap: 20px; /* Ajusta a distância entre o toggle e o label */
+    margin-right: 100px;
+}
+
+/* Estilos para os labels */
+.toggle-label {
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Bebas Neue', sans-serif;
+    cursor: pointer;
+}
+
+/* Estilo do botão de alternância */
+.toggle {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 30px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    outline: none;
+}
+
+/* Cor de fundo para o status de "Vendas" (quando o toggle estiver desmarcado) */
+.toggle {
+    background-color: #FFCC00; /* Amarelo para Vendas */
+}
+
+/* Cor de fundo para o status de "Orçamentos" (quando o toggle estiver marcado) */
+.toggle:checked {
+    background-color: #007BFF; /* Azul para Orçamentos */
+}
+
+/* Botão interno que se move */
+.toggle::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+/* Quando o toggle estiver marcado, move o botão para a direita */
+.toggle:checked::before {
+    left: 33px; /* Move o círculo interno para a direita */
+}
+
+header {
+    background: #2d2c3e;
+    width: 100%;
+    position: relative;
+    height: 100px;
+    padding: 0 20px;
+    z-index: 1100;
+    /* Garante que o header fique acima da navbar */
+}
+
+header h1 {
+    color: #3fcf37;
+    font-size: 38px;
+    text-align: center;
+    line-height: 100px;
+    margin: 0;
+}
+
+.icon-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+}
+
+.left-icons {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 15px;
+}
+
+.right-icons {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+}
+
+.icon {
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.icon i {
+    color: #ffffff;
+    font-size: 30px;
+}
+
+.icon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+.icon-fill:hover {
+    background: #16A085;
+}
+
+.icon-enter:hover {
+    background: #EB9532;
+}
+
+.icon-expand:hover {
+    background: #C82647;
+}
+
+.icon-rotate:hover {
+    background: #7E3661;
+}
+
+.icon-collapse:hover {
+    background: #8CC63F;
+}
+
+nav {
+    position: fixed;
+    top: 80px;
+    /* Ajusta a navegação para começar abaixo do header */
+    left: -250px;
+    /* Manter a navegação fora da tela inicialmente */
+    width: 220px;
+    height: calc(100vh - 80px);
+    /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
+    background-color: #1a1a22;
+    color: white;
+    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+    padding-top: 20px;
+    /* Ajuste do padding para não sobrepor o conteúdo da navbar */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Ativar navegação */
+nav.active {
+    left: 0;
+    /* Quando ativado, a navegação move-se para a esquerda */
+}
+
+/* Parte superior da navbar */
+.nav-superior {
+    flex-grow: 0;
+    text-align: center;
+}
+
+/* Parte inferior da navbar */
+.nav-inferior {
+    flex-grow: 1;
+    padding-top: 10px;
+    text-align: center;
+}
+
+/* Estilização dos títulos das seções */
+.nav-title {
+    font-weight: bold;
+    color: #39b54a;
+    padding: 10px;
+    background-color: #222;
+    text-align: center;
+}
+
+/* Itens da lista de navegação */
+nav ul {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    width: 100%;
+    margin: 10px 0;
+}
+
+nav ul li a {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 15px;
+    color: #fff;
+    text-decoration: none;
+    background-color: #333;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+nav ul li a:hover {
+    background-color: #39b54a;
+}
+
+.nav-inferior {
+    flex-grow: 1;
+    padding-top: 270px;
+    text-align: center;
+}
+
+.btn-clear {
+    position: relative;
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: #FFF;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    text-align: center;
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-clear:hover {
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
+}

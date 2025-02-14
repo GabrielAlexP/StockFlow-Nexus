@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Vendas - Gesso Aparecida</title>
+    <link rel="stylesheet" href="../static/css/vendedor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Barra de Cabeçalho -->
+    <header>
+        <h1>Dashboard Vendas</h1>
+        <div class="icon-container">
+            <div class="left-icons">
+                <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+                <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
+                <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+            </div>
+            <div class="right-icons">
+                <div class="toggle-container">
+                    <label for="status-toggle" class="toggle-label">Vendas</label>
+                    <input type="checkbox" id="status-toggle" class="toggle" />
+                    <label for="status-toggle" class="toggle-label">Orçamentos</label>
+                </div>
+                <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAV BAR -->
+    <nav id="sidebar">
+        <ul class="nav-superior">
+            <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+            <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+        </ul>
+        <ul class="nav-inferior">
+            <li id="opcoesEstoque"></li>
+            <li id="opcoesVendas"></li>
+        </ul>
+    </nav>
+
+    <!-- Contêiner para Seleções -->
+    <div class="filtros">
+        <!-- Seleção de Meses -->
+        <div class="selecao-mes">
+            <label for="mes">Mês:</label>
+            <select id="mes" class="input-mes">
+                <option value="hoje">hoje</option>
+                <option value="janeiro">Janeiro</option>
+                <option value="fevereiro">Fevereiro</option>
+                <option value="março">Março</option>
+                <option value="abril">Abril</option>
+                <option value="maio">Maio</option>
+                <option value="junho">Junho</option>
+                <option value="julho">Julho</option>
+                <option value="agosto">Agosto</option>
+                <option value="setembro">Setembro</option>
+                <option value="outubro">Outubro</option>
+                <option value="novembro">Novembro</option>
+                <option value="dezembro">Dezembro</option>
+            </select>
+        </div>
+
+        <!-- Seleção de Ano -->
+        <div class="selecao-ano">
+            <label for="ano">Ano:</label>
+            <input type="number" id="ano" class="input-ano" value="2025" min="2000" max="2099">
+        </div>
+    </div>
+
+    <!-- Caixa de Dados de Desempenho -->
+    <div class="caixas-dados">
+        <div class="caixa">
+            <h3>Número de Orçamentos</h3>
+            <p id="orcamentos">0</p>
+        </div>
+        <div class="caixa">
+            <h3>Venda Total</h3>
+            <p id="vendas-total">0</p>
+        </div>
+        <div class="caixa">
+            <h3>Total Lucro</h3>
+            <p id="lucro-total">0</p>
+        </div>
+        <div class="caixa">
+            <h3>Meta</h3>
+            <p id="meta">0</p>
+        </div>
+    </div>
+
+    <!-- Área Principal -->
+    <div class="area-principal">
+        <!-- Seção Esquerda -->
+        <div class="left-page">
+            <!-- Gráfico de Rosca e Select de Metas -->
+            <div class="area-metas">
+                <!-- Gráfico de Rosca -->
+                <div class="grafico-rosca">
+                    <canvas id="grafico-rosca"></canvas>
+                </div>
+                <div class="lado-grafico">
+                    <!-- Select de Metas -->
+                    <div class="meta-horizontal">
+                        <select id="metas" class="metas-select">
+                            <option value="diaria" id="meta-diaria">Meta Diária</option>
+                            <option value="mensal">Meta Mensal</option>
+                            <option value="trimestral">Meta Trimestral</option>
+                            <option value="semestral">Meta Semestral</option>
+                        </select>
+                        <select id="personalizado" class="metas-select" style="display: none;"></select>
+                    </div>
+                    <!-- Mensagem da Meta -->
+                    <p id="mensagem-meta" class="mensagem-meta">Falta X para alcançar a meta</p>
+                    <p id="mensagem-venda" class="mensagem-venda">Você já vendeu Y</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra Vertical -->
+        <div class="barra-vertical"></div>
+
+        <!-- Seção Direita -->
+        <div class="right-page">
+            <!-- Área de Busca -->
+            <div class="area-busca">
+                <label for="busca-pedido">Pedido:</label>
+                <input type="text" id="busca-pedido" class="input-busca">
+                <button id="buscar-pedido" class="botao-busca">Buscar</button>
+            </div>
+
+            <!-- Tabela de Pedidos -->
+            <div class="tabela-pedidos">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo">
+                        <!-- Linhas de pedidos serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tabela de Produtos -->
+            <div class="tabela-produtos">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Qtd</th>
+                            <th>Valor Unitário</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtos-corpo">
+                        <!-- Linhas de produtos serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Barras -->
+    <div class="grafico-principal">
+        <canvas id="grafico-barras"></canvas>
+    </div>
+
+    <!-- Scripts para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../static/vendedor.js"></script>
+</body>
+</html>
