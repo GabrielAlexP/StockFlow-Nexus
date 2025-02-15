@@ -5,10 +5,20 @@ import datetime
 import calendar
 
 admin_bp = Blueprint('admin', __name__)
+gerente_bp = Blueprint('gerente', __name__)
+vendedor_bp = Blueprint('vendedor', __name__)
 
 @admin_bp.route('/admin')
 def admin():
     return render_template('admin.html')
+
+@gerente_bp.route('/gerente')
+def admin():
+    return render_template('gerente.html')
+
+@vendedor_bp.route('/vendedor')
+def admin():
+    return render_template('vendedor.html')
 
 @admin_bp.route('/api/vendedores', methods=['GET'])
 def get_vendedores():
@@ -27,17 +37,18 @@ def get_vendedores():
         cursor = conn.cursor()
         
         query = """
-        SELECT ID_VENDEDOR, LogON FROM VENDEDOR 
+        SELECT ID_VENDEDOR, LogON, OBS FROM VENDEDOR 
         WHERE ATIVO = 'TRUE' AND IDEmpresa = ? AND OBS IN ('Vendedor', 'Gerente', 'Supervisor')
         """
         cursor.execute(query, (empresa_id,))
-        vendedores = [{"ID_VENDEDOR": row.ID_VENDEDOR, "LogON": row.LogON} for row in cursor.fetchall()]
+        vendedores = [{"ID_VENDEDOR": row.ID_VENDEDOR, "LogON": row.LogON, "OBS": row.OBS} for row in cursor.fetchall()]
         
         conn.close()
         return jsonify(vendedores)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @admin_bp.route('/api/vendas_total', methods=['GET'])
 def get_vendas_total():
@@ -120,7 +131,6 @@ def get_vendas_total():
 
 @admin_bp.route('/api/vendas_detalhes', methods=['GET'])
 def get_vendas_detalhes():
-    # Parâmetros obrigatórios
     empresa_id = request.args.get('empresa_id')
     if not empresa_id:
         return jsonify({"error": "ID da empresa é obrigatório"}), 400
@@ -129,7 +139,7 @@ def get_vendas_detalhes():
     except ValueError:
         return jsonify({"error": "ID da empresa deve ser numérico"}), 400
 
-    vendedor_id = request.args.get('vendedor_id')  # Pode ser "Total"
+    vendedor_id = request.args.get('vendedor_id')
     status_param = request.args.get('status')
     if not status_param:
         return jsonify({"error": "Status é obrigatório"}), 400
@@ -168,63 +178,47 @@ def get_vendas_detalhes():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
+        # Utilizando CTEs para calcular os agregados uma única vez
+        query = """
+        WITH FreteCTE AS (
+            SELECT PEDIDO, IDEmpresa, SUM(Frete) AS soma_frete
+            FROM Produto_Venda
+            GROUP BY PEDIDO, IDEmpresa
+        ),
+        CustoCTE AS (
+            SELECT PEDIDO, IDEmpresa, SUM(CustoProd * Quantidade) AS total_custo
+            FROM Produto_Venda
+            GROUP BY PEDIDO, IDEmpresa
+        )
+        SELECT v.Pedido, v.TabComissao, v.Valor, vend.OBS,
+               COALESCE(f.soma_frete, 0) AS soma_frete,
+               COALESCE(c.total_custo, 0) AS total_custo
+        FROM Venda v
+        INNER JOIN Vendedor vend ON v.VENDEDOR = vend.ID_VENDEDOR
+        LEFT JOIN FreteCTE f ON v.Pedido = f.PEDIDO AND v.IDEmpresa = f.IDEmpresa
+        LEFT JOIN CustoCTE c ON v.Pedido = c.PEDIDO AND v.IDEmpresa = c.IDEmpresa
+        WHERE v.IDEmpresa = ? AND v.STATUS = ? AND v.DataVenda BETWEEN ? AND ? AND v.DESATIVO = 'False'
+        """
+        params = [empresa_id, status_param, primeiro_dia, ultimo_dia]
         if vendedor_id and vendedor_id != "Total":
             try:
                 vendedor_id_int = int(vendedor_id)
             except ValueError:
                 return jsonify({"error": "ID do vendedor deve ser numérico ou 'Total'"}), 400
+            query += " AND v.VENDEDOR = ?"
+            params.append(vendedor_id_int)
 
-            query = """
-            SELECT v.Pedido, v.TabComissao, v.Valor,
-                   COALESCE(f.soma_frete, 0) AS soma_frete,
-                   COALESCE(c.total_custo, 0) AS total_custo
-            FROM Venda v
-            LEFT JOIN (
-                SELECT PEDIDO, IDEmpresa, SUM(Frete) AS soma_frete
-                FROM Produto_Venda
-                GROUP BY PEDIDO, IDEmpresa
-            ) f ON v.Pedido = f.PEDIDO AND v.IDEmpresa = f.IDEmpresa
-            LEFT JOIN (
-                SELECT PEDIDO, IDEmpresa, SUM(CustoProd * Quantidade) AS total_custo
-                FROM Produto_Venda
-                GROUP BY PEDIDO, IDEmpresa
-            ) c ON v.Pedido = c.PEDIDO AND v.IDEmpresa = c.IDEmpresa
-            WHERE v.IDEmpresa = ? AND v.VENDEDOR = ? AND v.STATUS = ?
-              AND v.DataVenda BETWEEN ? AND ? AND v.DESATIVO = 'False'
-            ORDER BY v.Pedido ASC
-            """
-            params = (empresa_id, vendedor_id_int, status_param, primeiro_dia, ultimo_dia)
-        else:
-            query = """
-            SELECT v.Pedido, v.TabComissao, v.Valor,
-                   COALESCE(f.soma_frete, 0) AS soma_frete,
-                   COALESCE(c.total_custo, 0) AS total_custo
-            FROM Venda v
-            LEFT JOIN (
-                SELECT PEDIDO, IDEmpresa, SUM(Frete) AS soma_frete
-                FROM Produto_Venda
-                GROUP BY PEDIDO, IDEmpresa
-            ) f ON v.Pedido = f.PEDIDO AND v.IDEmpresa = f.IDEmpresa
-            LEFT JOIN (
-                SELECT PEDIDO, IDEmpresa, SUM(CustoProd * Quantidade) AS total_custo
-                FROM Produto_Venda
-                GROUP BY PEDIDO, IDEmpresa
-            ) c ON v.Pedido = c.PEDIDO AND v.IDEmpresa = c.IDEmpresa
-            WHERE v.IDEmpresa = ? AND v.STATUS = ?
-              AND v.DataVenda BETWEEN ? AND ? AND v.DESATIVO = 'False'
-            ORDER BY v.Pedido ASC
-            """
-            params = (empresa_id, status_param, primeiro_dia, ultimo_dia)
+        query += " ORDER BY v.Pedido ASC"
 
         cursor.execute(query, params)
         rows = cursor.fetchall()
 
-        detalhes = []  # Lista para armazenar os detalhes dos pedidos
+        detalhes = []
         total_commissao = 0
         total_valor = 0
         total_frete = 0
         total_custo = 0
-        total_sub = 0  # Acumulador para o valor "sub"
+        total_sub = 0  # Comissão incidente sobre o frete
 
         for row in rows:
             try:
@@ -235,25 +229,18 @@ def get_vendas_detalhes():
             except (TypeError, ValueError):
                 tab_comissao = valor = soma_frete = custo = 0
 
-            # Comissão do pedido conforme calculada anteriormente
             comissao_pedido = (tab_comissao / 100) * valor - (tab_comissao / 100) * soma_frete
             total_commissao += comissao_pedido
             total_valor += valor
             total_frete += soma_frete
             total_custo += custo
-
-            # Cálculo do "sub" conforme solicitado:
-            sub = ((tab_comissao / 100) * valor) - ((tab_comissao / 100) * valor - (tab_comissao / 100) * soma_frete)
-            total_sub += sub
+            total_sub += (tab_comissao / 100) * soma_frete
 
             detalhes.append(
-                f"Pedido: {row.Pedido} / Comissão: {comissao_pedido:.2f} / Custo: {custo:.2f} / Frete: {soma_frete:.2f}"
+                f"Pedido: {row.Pedido} / Custo: {custo:.2f} / Frete: {soma_frete:.2f}"
             )
 
-        # Cálculo inicial do lucro
-        total_lucro = total_valor - total_commissao - total_frete - total_custo
-        # Ajuste final: subtraindo o total do "sub"
-        total_lucro = total_lucro - total_sub
+        total_lucro = total_valor - total_commissao - total_frete - total_custo - total_sub
 
         conn.close()
 
@@ -266,7 +253,6 @@ def get_vendas_detalhes():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @admin_bp.route('/api/grafico_vendas', methods=['GET'])
 def get_grafico_vendas():
@@ -424,5 +410,228 @@ def buscar_pedido():
         
         conn.close()
         return jsonify({"order": order, "products": produtos})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/api/comissao_supervisor', methods=['GET'])
+def get_comissao_supervisor():
+    empresa_id = request.args.get('empresa_id')
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+
+    if not empresa_id or not data_inicio or not data_fim:
+        return jsonify({"error": "ID da empresa, data de início e data de fim são obrigatórios"}), 400
+    
+    try:
+        empresa_id = int(empresa_id)
+    except ValueError:
+        return jsonify({"error": "ID da empresa deve ser numérico"}), 400
+
+    try:
+        datetime.datetime.strptime(data_inicio, "%Y-%m-%d")
+        datetime.datetime.strptime(data_fim, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
+
+    try:
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+
+        # 1. Buscar o ID do supervisor
+        query_supervisor = """
+        SELECT ID_Vendedor 
+        FROM Vendedor 
+        WHERE OBS = 'Supervisor' AND IDEmpresa = ?
+        """
+        cursor.execute(query_supervisor, (empresa_id,))
+        supervisor = cursor.fetchone()
+        
+        if not supervisor:
+            conn.close()
+            return jsonify({"error": "Nenhum supervisor encontrado"}), 404
+        
+        id_supervisor = supervisor.ID_Vendedor
+
+        # 2. Calcular a comissão do supervisor
+        query_comissao_supervisor = f"""
+        SELECT 
+            (Total_Comissao_Menos_Frete_Bruto + (0.2 / 100 * Total_Bruto)) AS Comissao_Supervisor
+        FROM 
+            (
+                SELECT 
+                    SUM(c.Comissao) - COALESCE(SUM(f.Frete_Bruto), 0) AS Total_Comissao_Menos_Frete_Bruto
+                FROM 
+                    (
+                        SELECT 
+                            Pedido, 
+                            (TabComissao / 100 * Valor) AS Comissao
+                        FROM 
+                            Venda 
+                        WHERE 
+                            Desativo = 'False' 
+                            AND Status = 'V' 
+                            AND DataVenda BETWEEN ? AND ? 
+                            AND IDEmpresa = ?
+                            AND Vendedor = ?
+                        GROUP BY 
+                            Pedido, TabComissao, Valor
+                    ) AS c
+                LEFT JOIN 
+                    (
+                        SELECT 
+                            pv.Pedido, 
+                            (SUM(pv.Frete) * (v.TabComissao / 100)) AS Frete_Bruto
+                        FROM 
+                            Produto_Venda pv
+                        JOIN 
+                            Venda v ON pv.Pedido = v.Pedido
+                        JOIN 
+                            (
+                                SELECT Pedido
+                                FROM Venda 
+                                WHERE Desativo = 'False' 
+                                  AND Status = 'V' 
+                                  AND DataVenda BETWEEN ? AND ? 
+                                  AND IDEmpresa = ?
+                                  AND Vendedor = ?
+                                GROUP BY Pedido
+                            ) AS Comissoes ON pv.Pedido = Comissoes.Pedido
+                        WHERE 
+                            v.IDEmpresa = ?
+                        GROUP BY 
+                            pv.Pedido, v.TabComissao
+                    ) AS f ON c.Pedido = f.Pedido
+            ) AS Total_Comissao_Menos_Frete_Bruto,
+
+            (
+                SELECT 
+                    (
+                        (SELECT SUM(v.Valor) 
+                         FROM Venda v
+                         WHERE v.IDEmpresa = ? 
+                           AND v.Desativo = 'False'
+                           AND v.STATUS = 'V'
+                           AND v.DataVenda BETWEEN ? AND ?
+                           AND v.Vendedor IN (
+                             SELECT ve.ID_VENDEDOR
+                             FROM Vendedor ve
+                             WHERE ve.IDEmpresa = ?
+                               AND ve.OBS = 'Vendedor'
+                           )
+                        ) 
+                        -
+                        ( 
+                            SELECT SUM(pv.Frete) 
+                            FROM Produto_Venda pv
+                            WHERE pv.IDEmpresa = ? 
+                              AND pv.Pedido IN (
+                                SELECT v.Pedido
+                                FROM Venda v
+                                WHERE v.IDEmpresa = ? 
+                                  AND v.Desativo = 'False'
+                                  AND v.STATUS = 'V'
+                                  AND v.DataVenda BETWEEN ? AND ?
+                                  AND v.Vendedor IN (
+                                    SELECT ve.ID_VENDEDOR
+                                    FROM Vendedor ve
+                                    WHERE ve.IDEmpresa = ? 
+                                      AND ve.OBS = 'Vendedor'
+                                  )
+                              )
+                        )
+                    ) AS Total_Bruto
+            ) AS Total_Bruto;
+        """
+
+        params = [
+            data_inicio, data_fim, empresa_id, id_supervisor,  # Comissão Supervisor
+            data_inicio, data_fim, empresa_id, id_supervisor, empresa_id,  # Frete
+            empresa_id, data_inicio, data_fim, empresa_id, empresa_id,  # Total Bruto
+            empresa_id, data_inicio, data_fim, empresa_id  # Total Bruto (continuação)
+        ]
+        
+        cursor.execute(query_comissao_supervisor, params)
+        row = cursor.fetchone()
+        
+        comissao_supervisor = float(row.Comissao_Supervisor) if row and row.Comissao_Supervisor is not None else 0
+
+        conn.close()
+        return jsonify({
+            "comissao_supervisor": comissao_supervisor
+        })
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_bp.route('/api/comissao_gerente', methods=['GET'])
+def get_comissao_gerente():
+    empresa_id = request.args.get('empresa_id')
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+
+    if not empresa_id or not data_inicio or not data_fim:
+        return jsonify({"error": "ID da empresa, data de início e data de fim são obrigatórios"}), 400
+
+    try:
+        empresa_id = int(empresa_id)
+    except ValueError:
+        return jsonify({"error": "ID da empresa deve ser numérico"}), 400
+
+    try:
+        # Validação simples do formato da data
+        datetime.datetime.strptime(data_inicio, "%Y-%m-%d")
+        datetime.datetime.strptime(data_fim, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
+
+    try:
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+
+        # Converte para datetime completo
+        data_inicio_dt = data_inicio + " 00:00:00"
+        data_fim_dt = data_fim + " 23:59:59"
+
+        query = """
+        WITH Pedidos AS (
+            SELECT Pedido
+            FROM Venda
+            WHERE IDEmpresa = ?
+              AND Desativo = 'False'
+              AND STATUS = 'V'
+              AND DataVenda BETWEEN ? AND ?
+        ),
+        VendaTotal AS (
+            SELECT SUM(Valor) AS VENDA_TOTAL
+            FROM Venda
+            WHERE IDEmpresa = ?
+              AND Desativo = 'False'
+              AND STATUS = 'V'
+              AND DataVenda BETWEEN ? AND ?
+        ),
+        TotalFrete AS (
+            SELECT SUM(pv.Frete) AS Total_Frete
+            FROM Produto_Venda pv
+            WHERE pv.IDEmpresa = ?
+              AND pv.Pedido IN (SELECT Pedido FROM Pedidos)
+        )
+        SELECT 
+            0.2 / 100 * ((SELECT VENDA_TOTAL FROM VendaTotal) - COALESCE((SELECT Total_Frete FROM TotalFrete), 0)) AS Comissao_Gerente;
+        """
+
+        params = [
+            empresa_id, data_inicio_dt, data_fim_dt,   # Pedidos
+            empresa_id, data_inicio_dt, data_fim_dt,       # VendaTotal
+            empresa_id                                   # TotalFrete
+        ]
+
+        cursor.execute(query, params)
+        row = cursor.fetchone()
+
+        comissao_gerente = float(row.Comissao_Gerente) if row and row.Comissao_Gerente is not None else 0
+
+        conn.close()
+        return jsonify({"comissao_gerente": comissao_gerente})
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500

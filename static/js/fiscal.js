@@ -278,11 +278,25 @@ function stopResize() {
 document.addEventListener("DOMContentLoaded", function () {
     // Recupera os dados do usuário armazenados
     const usuarioData = sessionStorage.getItem("usuario");
-
-    if (usuarioData) {
-        const usuario = JSON.parse(usuarioData);
-    } else {
-        console.warn("Nenhum dado de usuário encontrado.");
+    if (!usuarioData) {
+        alert("Usuário não autenticado! Redirecionando para a página de login...");
+        window.location.href = "/";
+        return;
+    }
+    const usuario = JSON.parse(usuarioData);
+    
+    // Verifica se o campo Cargo está definido
+    if (!usuario.Cargo || usuario.Cargo.trim() === "") {
+        alert("Cargo não definido! Redirecionando para a página de login...");
+        window.location.href = "/";
+        return;
+    }
+    
+    // Apenas administradores podem acessar esta página
+    if (usuario.Cargo.trim().toLowerCase() !== "admin") {
+        alert("Acesso restrito! Apenas administradores podem acessar esta página. Redirecionando para o portal...");
+        window.location.href = "/portal";
+        return;
     }
 });
 
@@ -314,7 +328,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidos = ['admin', 'estoque'];
-
         if (!cargosPermitidos.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -329,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-
         if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -338,25 +350,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-
         outraLista.innerHTML = '';
-
         lista.innerHTML = '';
-
         if (!verificarPermissao()) return;
 
+        // Adiciona o título da navegação
         lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
+
         links.forEach(link => {
             const li = document.createElement('li');
             li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-
             li.querySelector('a').addEventListener('click', function (e) {
                 if (!verificarPermissao()) {
                     e.preventDefault();
                     lista.innerHTML = '';
                 }
             });
-
             lista.appendChild(li);
         });
     }
@@ -379,36 +388,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Recupera os dados do usuário armazenados
-    const usuarioData = sessionStorage.getItem("usuario");
-
-    if (!usuarioData) {
-        alert("Usuário não autenticado! Redirecionando para a página de login...");
-        window.location.href = "/";
-        return;
-    }
-    
-    const usuario = JSON.parse(usuarioData);
-
-    // Verifica se o campo Cargo está vazio
-    if (!usuario.Cargo || usuario.Cargo.trim() === "") {
-        alert("Cargo não definido! Redirecionando para a página de login...");
-        window.location.href = "/";
-        return;
-    }
-
-    // Se o Cargo não for 'admin', redireciona para o portal
-    if (usuario.Cargo.trim().toLowerCase() !== "admin") {
-        alert("Acesso restrito! Apenas administradores podem acessar esta página. Redirecionando para o portal...");
-        window.location.href = "/portal";
-        return;
-    }
-
-    // Caso passe nas validações, o usuário permanece na página /fiscal
-});
-
-
-document.addEventListener("DOMContentLoaded", function () {
     const homeIcon = document.getElementById("home-icon");
     const exitIcon = document.getElementById("exit-icon");
 
@@ -419,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Redirecionamento para / e limpeza do sessionStorage ao clicar no ícone de saída
     exitIcon.addEventListener("click", function () {
-        sessionStorage.clear(); // Remove todas as informações do sessionStorage
-        window.location.href = "/"; // Redireciona para a página inicial
+        sessionStorage.clear();
+        window.location.href = "/";
     });
 });

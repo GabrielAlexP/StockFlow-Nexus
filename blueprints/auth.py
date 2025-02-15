@@ -54,7 +54,7 @@ def validar_login():
         with pyodbc.connect(conn_str) as conn:
             cursor = conn.cursor()
             query = """
-                SELECT LogON, Sexo, ID_Vendedor, Fax, OBS, Senha 
+                SELECT LogON, Sexo, ID_Vendedor, IDEmpresa, OBS, Senha 
                 FROM Vendedor
                 WHERE LogON = ? AND IDEmpresa = ?;
             """
@@ -66,7 +66,7 @@ def validar_login():
                     "Nome": resultado.LogON,
                     "Sexo": resultado.Sexo,
                     "Vendedor": resultado.ID_Vendedor,
-                    "Meta": resultado.Fax,
+                    "Empresa": resultado.IDEmpresa,
                     "Cargo": resultado.OBS
                 }
                 return jsonify({"sucesso": True, "usuario": usuario_data})

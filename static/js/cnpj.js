@@ -147,11 +147,9 @@ document.getElementById("limpar").addEventListener("click", function(e) {
 
 
 // PARTE COMPARTILHADA
-
 document.addEventListener("DOMContentLoaded", function () {
     // Recupera os dados do usuário armazenados
     const usuarioData = sessionStorage.getItem("usuario");
-    
     if (usuarioData) {
         const usuario = JSON.parse(usuarioData);
     } else {
@@ -187,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidos = ['admin', 'estoque'];
-
         if (!cargosPermitidos.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -202,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
         const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-
         if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
             alert('Você não tem permissão para acessar esta página!');
             return false;
@@ -225,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     return; // Não adiciona o link para usuários que não são admin
                 }
             }
-
             const li = document.createElement('li');
             li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
             li.querySelector('a').addEventListener('click', function(e) {
@@ -249,8 +244,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('vendasLink').addEventListener('click', function (e) {
         e.preventDefault();
+        // Define a rota do Dashboard de Vendas conforme o cargo do usuário
+        let dashboardUrl = '/';
+        const cargo = usuario.Cargo.trim().toLowerCase();
+        if (cargo === 'admin') {
+            dashboardUrl = '/admin';
+        } else if (cargo === 'gerente' || cargo === 'supervisor') {
+            dashboardUrl = '/gerente';
+        } else if (cargo === 'vendedor') {
+            dashboardUrl = '/vendedor';
+        }
         adicionarLinks(opcoesVendas, [
             { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
+            { url: dashboardUrl, texto: 'Dashboard de Vendas', icone: '🛒' },
             { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
         ], verificarPermissaoVendas, opcoesEstoque);
     });
@@ -259,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener("DOMContentLoaded", function () {
     // Recupera os dados do usuário armazenados
     const usuarioData = sessionStorage.getItem("usuario");
-
     if (!usuarioData) {
         alert("Usuário não autenticado! Redirecionando para a página de login...");
         window.location.href = "/"; // Ajuste a URL conforme necessário
@@ -281,5 +286,3 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = "/"; // Redireciona para a página inicial
     });
 });
-
-

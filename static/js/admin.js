@@ -1,401 +1,576 @@
-let graficoBarras = null;
-let graficoRosca = null;
-
-document.getElementById('metas').addEventListener('change', function () {
-    const metasSelecionada = this.value;
-
-    if (metasSelecionada === "diaria" || metasSelecionada === "mensal") {
-        carregarDados(); // Atualiza os dados para as metas diária e mensal
+document.addEventListener("DOMContentLoaded", function () {
+    // --- Validação do usuário
+    let usuarioData = sessionStorage.getItem("usuario");
+    if (!usuarioData) {
+      alert("Usuário não autenticado! Redirecionando para a página de login...");
+      window.location.href = "/";
+      return;
     }
-
-    // Lógica para exibir as opções personalizadas (trimestral/semestral)
-    const personalizado = document.getElementById('personalizado');
-    if (!personalizado) {
-        console.error("Elemento 'personalizado' não encontrado!");
+    let usuario;
+    try {
+      usuario = JSON.parse(usuarioData);
+    } catch (e) {
+      alert("Erro ao processar os dados do usuário. Redirecionando para login.");
+      sessionStorage.clear();
+      window.location.href = "/";
+      return;
+    }
+    if (!usuario.Cargo || usuario.Cargo.trim() === "") {
+      alert("Cargo não definido! Redirecionando para a página de login...");
+      window.location.href = "/";
+      return;
+    }
+    const cargo = usuario.Cargo.trim().toLowerCase();
+    if (cargo !== "admin") {
+      if (cargo === "gerente" || cargo === "supervisor") {
+        alert("Cargo diferente do solicitado! Redirecionando para a área de Gerente...");
+        window.location.href = "/gerente";
         return;
+      } else if (cargo === "vendedor") {
+        alert("Cargo diferente do solicitado! Redirecionando para a área de Vendedor...");
+        window.location.href = "/vendedor";
+        return;
+      } else {
+        alert("Cargo inválido! Redirecionando para o portal...");
+        window.location.href = "/portal";
+        return;
+      }
     }
-
-    personalizado.innerHTML = ""; // Limpa as opções anteriores
-    if (metasSelecionada === "trimestral") {
-        personalizado.innerHTML = `
-            <option value="1trimestre">1° Trimestre</option>
-            <option value="2trimestre">2° Trimestre</option>
-            <option value="3trimestre">3° Trimestre</option>
-            <option value="4trimestre">4° Trimestre</option>
-        `;
-        personalizado.style.display = "block";
-    } else if (metasSelecionada === "semestral") {
-        personalizado.innerHTML = `
-            <option value="1semestre">1° Semestre</option>
-            <option value="2semestre">2° Semestre</option>
-        `;
-        personalizado.style.display = "block";
-    } else {
-        personalizado.style.display = "none";
+  
+    // --- Menu responsivo
+    const menuIcon = document.getElementById("menu-icon");
+    const nav = document.querySelector("nav");
+    if (menuIcon && nav) {
+      menuIcon.addEventListener("click", function () {
+        nav.classList.toggle("active");
+      });
+      document.addEventListener("click", function (event) {
+        if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
+          nav.classList.remove("active");
+        }
+      });
     }
-
-    personalizado.addEventListener('change', function () {
-        atualizarMeta(metasSelecionada); // Atualiza com o período selecionado
-    });
-
-    // Força uma atualização inicial da meta com o primeiro período disponível
-    atualizarMeta(metasSelecionada);
-});
-
-
-
-let vendaTotalAtual = 0;
-
-function atualizarMeta(metasSelecionada) {
-    const empresa = document.getElementById('empresa').value;
-    const anoSelecionado = document.getElementById('ano').value;
-    const vendedor = document.getElementById('vendedor-selecao').value;
-
-    if (metasSelecionada === "trimestral" || metasSelecionada === "semestral") {
-        const personalizado = document.getElementById('personalizado');
-        const periodoSelecionado = personalizado.value;
-
-        fetch(`/api/meta?empresa=${empresa}&vendedor=${vendedor}&tipo_meta=${metasSelecionada}&periodo=${periodoSelecionado}&ano=${anoSelecionado}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log("Dados recebidos do backend:", JSON.stringify(data, null, 2));
-
-                const meta = parseFloat(data.meta || 0);
-                const totalVendasPeriodo = parseFloat(data.total_vendas || 0);
-                vendaTotalAtual = totalVendasPeriodo; // Atualiza a variável global
-
-                const mensagemMeta = data.mensagem_meta || `Falta ${formatarMoeda(meta - vendaTotalAtual)} para alcançar a meta`;
-
-                // Atualiza os elementos da página
-                document.getElementById('meta').innerText = formatarMoeda(meta);
-                atualizarVendaTotal(vendaTotalAtual);
-                document.getElementById('mensagem-meta').innerText = mensagemMeta;
-
-                gerarGraficos(data.datas || [], data.valores || [], vendaTotalAtual, meta);
-            })
-            .catch(error => console.error("Erro ao carregar metas:", error));
+  
+    // --- Funções de verificação de permissão
+    const opcoesEstoque = document.getElementById("opcoesEstoque");
+    const opcoesVendas = document.getElementById("opcoesVendas");
+  
+    function verificarPermissaoEstoque() {
+      if (!usuario) {
+        alert("Usuário não autenticado!");
+        return false;
+      }
+      const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+      const cargosPermitidos = ["admin", "estoque"];
+      if (!cargosPermitidos.includes(cargoNormalizado)) {
+        alert("Você não tem permissão para acessar esta página!");
+        return false;
+      }
+      return true;
     }
-}
-
-
-function atualizarVendedores() {
-    const empresaSelecionada = document.getElementById('empresa').value;
-
-    // Fazendo a solicitação para buscar vendedores ativos
-    fetch(`/api/vendedores?empresa=${empresaSelecionada}&obs=Vendedor, gerente`)
-        .then(response => response.json())
-        .then(data => {
-            const vendedorSelect = document.getElementById('vendedor-selecao');
-            vendedorSelect.innerHTML = ''; // Limpa as opções atuais
-
-            // Adiciona a opção padrão "Total"
-            const optionTotal = document.createElement('option');
-            optionTotal.value = 'Total';
-            optionTotal.textContent = 'Total';
-            vendedorSelect.appendChild(optionTotal);
-
-            // Adiciona vendedores retornados pela API
-            data.forEach(vendedor => {
-                const option = document.createElement('option');
-                option.value = vendedor.codigo;
-                option.textContent = vendedor.nome;
-                vendedorSelect.appendChild(option);
+  
+    function verificarPermissaoVendas() {
+      if (!usuario) {
+        alert("Usuário não autenticado!");
+        return false;
+      }
+      const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+      const cargosPermitidosVendas = ["admin", "vendedor", "gerente", "supervisor"];
+      if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
+        alert("Você não tem permissão para acessar esta página!");
+        return false;
+      }
+      return true;
+    }
+  
+    function adicionarLinks(lista, links, verificarPermissao, outraLista) {
+      if (outraLista) outraLista.innerHTML = "";
+      if (lista) lista.innerHTML = "";
+      if (!verificarPermissao()) return;
+      if (lista) {
+        lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
+        links.forEach(link => {
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+          const a = li.querySelector("a");
+          if (a) {
+            a.addEventListener("click", function (e) {
+              if (!verificarPermissao()) {
+                e.preventDefault();
+                lista.innerHTML = "";
+              }
             });
-
-            carregarDados(); // Recarrega os dados ao atualizar os vendedores
-        })
-        .catch(error => console.error('Erro ao carregar vendedores:', error));
-}
-
-function formatarMoeda(valor) {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function carregarDados() {
-    // Zera os valores exibidos antes de buscar novos dados
-    document.getElementById('orcamentos').innerText = 0;
-    atualizarVendaTotal(0); // Exibe 0 no campo de vendas
-    document.getElementById('lucro-total').innerText = formatarMoeda(0);
-    document.getElementById('meta').innerText = formatarMoeda(0);
-    document.getElementById('mensagem-meta').innerText = "Nenhuma meta disponível.";
-    document.getElementById('mensagem-venda').innerText = "Nenhuma venda registrada.";
-    gerarGraficos([], [], 0, 0); // Zera os gráficos
-
-    // Lógica de carregamento dos dados da API
-    const empresa = document.getElementById('empresa').value;
-    const vendedor = document.getElementById('vendedor-selecao').value; // Vendedor dinâmico
-    const mesSelecionado = document.getElementById('mes').value;
-    const anoSelecionado = document.getElementById('ano').value;
-    const metaSelecionada = document.getElementById('metas').value || "mensal";
-
-    const metaDiaria = document.getElementById('meta-diaria');
-
-    if (mesSelecionado === "hoje") {
-        metaDiaria.style.display = 'block';
-    } else {
-        metaDiaria.style.display = 'none';
-        if (metaSelecionada === "diaria") {
-            document.getElementById('metas').value = "mensal";
-        }
-    }
-
-    // Captura o estado do botão toggle (Status)
-    const status = document.getElementById('status-toggle').checked ? 'S' : 'V';  // 'S' para Orçamentos, 'V' para Vendas
-
-    fetch(`/api/vendas?empresa=${empresa}&vendedor=${vendedor}&mes=${mesSelecionado}&ano=${anoSelecionado}&meta_tipo=${metaSelecionada}&status=${status}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                const numeroOrcamentos = data.numero_orcamentos || 0;
-                const vendaTotalAtualLocal = data.venda_total ? parseFloat(data.venda_total) : 0; // Redefine venda total para 0 se não houver valor
-                const lucroTotal = data.lucro_total ? parseFloat(data.lucro_total) : 0;
-                const meta = data.meta ? parseFloat(data.meta) : 0;
-
-                // Atualiza os elementos da página
-                document.getElementById('orcamentos').innerText = numeroOrcamentos;
-                atualizarVendaTotal(vendaTotalAtualLocal);
-                document.getElementById('lucro-total').innerText = formatarMoeda(lucroTotal);
-                document.getElementById('meta').innerText = formatarMoeda(meta);
-
-                document.getElementById('mensagem-meta').innerText = data.mensagem_meta || `Falta ${formatarMoeda(meta - vendaTotalAtualLocal)} para alcançar a meta`;
-                document.getElementById('mensagem-venda').innerText = `Você já vendeu ${formatarMoeda(vendaTotalAtualLocal)}`;
-
-                gerarGraficos(data.datas || [], data.valores || [], vendaTotalAtualLocal, meta);
-            } else {
-                console.error("Erro: Dados não encontrados.");
-            }
-        })
-        .catch(error => {
-            console.error("Erro ao carregar dados:", error);
+          }
+          lista.appendChild(li);
         });
-}
-
-
-function atualizarVendaTotal(valor) {
-    document.getElementById('mensagem-venda').innerText = `Você já vendeu ${formatarMoeda(valor)} no período selecionado`;
-    const vendaTotalElemento = document.getElementById('vendas-total');
-    if (vendaTotalElemento) {
-        vendaTotalElemento.innerText = formatarMoeda(valor);
-    } else {
-        console.error('Elemento de venda total não encontrado');
+      }
     }
-}
-
-
-// Função para formatar os valores de moeda
-function formatarMoeda(valor) {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Função para gerar gráficos (caso seja necessário)
-function gerarGraficos(datas, valores, vendaTotal, meta) {
-    // Adicione o código para gerar os gráficos conforme sua implementação
-}
-
-
-function ajustarCanvas() {
-    const canvasBarras = document.getElementById('grafico-barras');
-    canvasBarras.width = canvasBarras.offsetWidth;
-    canvasBarras.height = canvasBarras.offsetHeight;
-
-    const canvasRosca = document.getElementById('grafico-rosca');
-    canvasRosca.width = canvasRosca.offsetWidth;
-    canvasRosca.height = canvasRosca.offsetHeight;
-}
-
-window.addEventListener('resize', ajustarCanvas);
-
-// Referência ao toggle
-const statusToggle = document.getElementById('status-toggle');
-
-// Função que será chamada sempre que o toggle mudar
-statusToggle.addEventListener('change', function() {
-    let status = statusToggle.checked ? 'S' : 'V'; // 'S' para Orçamentos, 'V' para Vendas
-
-    // Atualiza os dados de acordo com o status
-    console.log("Status atualizado para:", status);
-    carregarDados();  // Aqui você recarrega os dados após o toggle
-});
-
-// Função para carregar dados com base no status
-function carregarDadosComStatus(status) {
-    // Aqui você pode implementar a lógica para passar o status para a API ou para a lógica do seu dashboard
-    console.log(`Carregando dados para o status: ${status}`);
-
-    // Exemplo: se for 'V', carrega vendas, se for 'S', carrega orçamentos
-    if (status === 'V') {
-        console.log('Carregando dados de vendas...');
-        // Chame a função que carrega os dados de vendas
-    } else if (status === 'S') {
-        console.log('Carregando dados de orçamentos...');
-        // Chame a função que carrega os dados de orçamentos
+  
+    const estoqueLink = document.getElementById("estoqueLink");
+    if (estoqueLink && opcoesEstoque && opcoesVendas) {
+      estoqueLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        adicionarLinks(
+          opcoesEstoque,
+          [
+            { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
+            { url: "/pedidos", texto: "Status de Pedido", icone: "📜" }
+          ],
+          verificarPermissaoEstoque,
+          opcoesVendas
+        );
+      });
     }
-}
-
-
-function gerarGraficos(labels, valores, vendaTotal, meta) {
-    ajustarCanvas();
-
-    const ctxBarras = document.getElementById('grafico-barras').getContext('2d');
-    const ctxRosca = document.getElementById('grafico-rosca').getContext('2d');
-
-    const agrupadosPorDia = labels.reduce((acc, label, index) => {
-        acc[label] = (acc[label] || 0) + parseFloat(valores[index]);
-        return acc;
-    }, {});
-
-    const diasUnicos = Object.keys(agrupadosPorDia).sort();
-    const valoresPorDia = diasUnicos.map(dia => agrupadosPorDia[dia]);
-
-    if (graficoBarras) graficoBarras.destroy();
-
-    graficoBarras = new Chart(ctxBarras, {
-        type: 'bar',
-        data: {
-            labels: diasUnicos,
-            datasets: [{
-                label: 'Vendas por Dia',
-                data: valoresPorDia,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: { display: true, text: 'Dias do Mês' },
-                    ticks: {
-                        callback: function (value) {
-                            const rawLabel = this.getLabelForValue(value);
-                            const [ano, mes, dia] = rawLabel.split('-');
-                            return `${dia}/${mes}`;
-                        }
-                    }
-                },
-                y: {
-                    title: { display: true, text: 'Valor (' },
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        title: tooltipItems => {
-                            const rawLabel = tooltipItems[0].label;
-                            const [ano, mes, dia] = rawLabel.split('-');
-                            return `${dia}/${mes}/${ano}`;
-                        },
-                        label: context => formatarMoeda(context.raw)
-                    }
-                },
-                legend: { display: false }
-            },
-            layout: { padding: { top: 20, bottom: 20, left: 20, right: 20 } },
-            hover: { mode: 'nearest', intersect: true }
+  
+    const vendasLink = document.getElementById("vendasLink");
+    if (vendasLink && opcoesVendas && opcoesEstoque) {
+      vendasLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        adicionarLinks(
+          opcoesVendas,
+          [
+            { url: "/ranking", texto: "Ranking de Vendas", icone: "📊" },
+            { url: "/cnpj", texto: "Consulta de CNPJ", icone: "🔎" }
+          ],
+          verificarPermissaoVendas,
+          opcoesEstoque
+        );
+      });
+    }
+  
+    // --- Eventos dos ícones Home e Sair
+    const homeIcon = document.getElementById("home-icon");
+    if (homeIcon) {
+      homeIcon.addEventListener("click", function () {
+        window.location.href = "/portal";
+      });
+    }
+    const exitIcon = document.getElementById("exit-icon");
+    if (exitIcon) {
+      exitIcon.addEventListener("click", function () {
+        sessionStorage.clear();
+        window.location.href = "/";
+      });
+    }
+  
+    // --- Função para carregar empresas
+    async function carregarEmpresas() {
+      try {
+        const response = await fetch("/api/empresas");
+        if (!response.ok) throw new Error("Erro ao carregar empresas");
+        const empresas = await response.json();
+        const select = document.getElementById("empresa-select");
+        if (!select) return;
+        select.innerHTML = "";
+        let empresaUsuario = null;
+        if (usuarioData) {
+          try {
+            const usuarioObj = JSON.parse(usuarioData);
+            empresaUsuario = usuarioObj.Empresa;
+          } catch (e) {
+            console.error("Erro ao parsear usuário:", e);
+          }
         }
-    });
-
-    if (graficoRosca) graficoRosca.destroy();
-
-    graficoRosca = new Chart(ctxRosca, {
-        type: 'doughnut',
-        data: {
-            labels: ['Venda Total', 'Meta Restante'],
-            datasets: [{
-                data: [vendaTotal, meta - vendaTotal],
-                backgroundColor: ['#36A2EB', '#FF6384']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: true, position: 'top' }
-            }
+        empresas.forEach(empresa => {
+          const option = document.createElement("option");
+          option.value = empresa.IDEmpresa;
+          option.textContent = `${empresa.IDEmpresa}`;
+          if (empresaUsuario && empresa.IDEmpresa == empresaUsuario) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
+        // Dispara o evento "change" para atualizar os dados
+        select.dispatchEvent(new Event("change"));
+      } catch (error) {
+        alert("Erro ao carregar a lista de empresas.");
+      }
+    }
+  
+    // --- Define o mês padrão
+    const mesSelect = document.getElementById("mes");
+    if (mesSelect) {
+      const meses = [
+        "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+        "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+      ];
+      const mesAtual = meses[new Date().getMonth()];
+      mesSelect.value = mesAtual;
+    }
+  
+    // --- Chama o carregamento das empresas
+    carregarEmpresas();
+  
+    // --- Função para carregar o total de vendas
+    async function carregarVendasTotal() {
+      const empresaSelect = document.getElementById("empresa-select");
+      if (!empresaSelect) return;
+      const empresaId = empresaSelect.value;
+      const vendedorSelect = document.getElementById("vendedor-selecao");
+      if (!vendedorSelect) return;
+      const vendedorId = vendedorSelect.value;
+      const statusToggle = document.getElementById("status-toggle");
+      const status = statusToggle && statusToggle.checked ? "S" : "V";
+      const anoInput = document.getElementById("ano");
+      const mesInput = document.getElementById("mes");
+      const ano = anoInput ? anoInput.value : "";
+      const mes = mesInput ? mesInput.value : "";
+      if (!empresaId) return;
+      try {
+        const response = await fetch(`/api/vendas_total?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+        if (!response.ok) throw new Error("Erro ao carregar total de vendas");
+        const data = await response.json();
+        const vendasTotalEl = document.getElementById("vendas-total");
+        if (vendasTotalEl) {
+          vendasTotalEl.textContent = Number(data.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
         }
-    });
-}
-document.getElementById('empresa').addEventListener('change', atualizarVendedores);
-document.getElementById('vendedor-selecao').addEventListener('change', carregarDados);
-document.getElementById('mes').addEventListener('change', carregarDados);
-document.getElementById('ano').addEventListener('change', carregarDados);
-
-document.getElementById('buscar-pedido').addEventListener('click', buscarPedido);
-document.getElementById('busca-pedido').addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-        buscarPedido();
+      } catch (error) {
+        alert("Erro ao carregar o total de vendas.");
+      }
     }
-});
-
-function buscarPedido() {
-    const pedido = document.getElementById('busca-pedido').value;
-
-    if (!pedido) {
-        alert('Por favor, insira um número de pedido.');
-        return;
-    }
-
-    fetch(`/api/pedido/${pedido}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Pedido não encontrado ou erro no servidor.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Dados recebidos:", data);
-
-            // Formatar data no formato DD/MM/YYYY
-            const formatarData = dataISO => {
-                if (!dataISO) return 'Não disponível';
-                const [ano, mes, dia] = dataISO.split('-');
-                return `${dia}/${mes}/${ano}`;
+  
+    // --- Função para carregar os detalhes das vendas
+    async function carregarVendasDetalhes() {
+      const empresaSelect = document.getElementById("empresa-select");
+      if (!empresaSelect) return;
+      const empresaId = empresaSelect.value;
+      const vendedorSelect = document.getElementById("vendedor-selecao");
+      if (!vendedorSelect) return;
+      const vendedorId = vendedorSelect.value;
+      const statusToggle = document.getElementById("status-toggle");
+      const status = statusToggle && statusToggle.checked ? "S" : "V";
+      const anoInput = document.getElementById("ano");
+      const mesInput = document.getElementById("mes");
+      const ano = anoInput ? anoInput.value : "";
+      const mes = mesInput ? mesInput.value : "";
+      if (!empresaId) return;
+      try {
+        const response = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+        if (!response.ok) throw new Error("Erro ao carregar os detalhes de vendas");
+        const data = await response.json();
+        const orcamentosEl = document.getElementById("orcamentos");
+        if (orcamentosEl) {
+          orcamentosEl.textContent = data.qtd_orcamentos;
+        }
+        const lucroTotalEl = document.getElementById("lucro-total");
+        if (lucroTotalEl) {
+          lucroTotalEl.textContent = Number(data.lucro_total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        }
+        const comissaoEl = document.getElementById("comissao");
+        if (vendedorSelect.selectedIndex >= 0 && comissaoEl) {
+          const selectedOption = vendedorSelect.options[vendedorSelect.selectedIndex];
+          if (selectedOption && selectedOption.dataset.obs) {
+            const cargoVendedor = selectedOption.dataset.obs.toLowerCase();
+            const mesMap = {
+              "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4,
+              "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
+              "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
             };
-
-            // Exibição dos dados
-            const tabelaPedidos = document.getElementById('tabela-corpo');
-            tabelaPedidos.innerHTML = `
-                <tr>
-                    <td>${data.pedido}</td>
-                    <td>${data.nome_cliente || data.cliente}</td>
-                    <td><span>${formatarMoeda(data.valor_total || 0)}</span></td>
-                    <td>${formatarData(data.data_venda)}</td>
-                </tr>`;
-
-            const tabelaProdutos = document.getElementById('produtos-corpo');
-            tabelaProdutos.innerHTML = data.produtos.map(produto => {
-                const valorUnitario = produto.valor_unitario || 0;
-                const quantidade = produto.quantidade || 0;
-                return `
-                    <tr>
-                        <td>${produto.id_produto || produto.codigo}</td>
-                        <td>${produto.descricao || 'Sem descrição'}</td>
-                        <td>${formatarQuantidade(quantidade)}</td>
-                        <td><span>${formatarMoeda(valorUnitario)}</span></td>
-                        <td><span>${formatarMoeda(quantidade * valorUnitario)}</span></td>
-                    </tr>`;
-            }).join('');
-        })
-        .catch(error => {
-            console.error('Erro ao buscar pedido:', error);
-            alert('Erro ao buscar o pedido. Tente novamente.');
+            let mesInt = mesMap[mes.toLowerCase()];
+            let data_inicio = `${ano}-${("0" + mesInt).slice(-2)}-01`;
+            let lastDay = new Date(ano, mesInt, 0).getDate();
+            let data_fim = `${ano}-${("0" + mesInt).slice(-2)}-${lastDay}`;
+            if (cargoVendedor === "supervisor") {
+              const responseSupervisor = await fetch(`/api/comissao_supervisor?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
+              if (!responseSupervisor.ok) throw new Error("Erro ao carregar a comissão do supervisor");
+              const supervisorData = await responseSupervisor.json();
+              comissaoEl.textContent = Number(supervisorData.comissao_supervisor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            } else if (cargoVendedor === "gerente") {
+              const responseGerente = await fetch(`/api/comissao_gerente?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
+              if (!responseGerente.ok) throw new Error("Erro ao carregar a comissão do gerente");
+              const gerenteData = await responseGerente.json();
+              comissaoEl.textContent = Number(gerenteData.comissao_gerente).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            } else {
+              comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            }
+          } else {
+            comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          }
+        }
+      } catch (error) {
+        alert("Erro ao carregar os detalhes de vendas.");
+      }
+    }
+  
+    // --- Função para carregar o gráfico de vendas
+    async function carregarGraficoVendas() {
+      const empresaSelect = document.getElementById("empresa-select");
+      if (!empresaSelect) return;
+      const empresaId = empresaSelect.value;
+      const vendedorSelect = document.getElementById("vendedor-selecao");
+      if (!vendedorSelect) return;
+      const vendedorId = vendedorSelect.value;
+      const statusToggle = document.getElementById("status-toggle");
+      const status = statusToggle && statusToggle.checked ? "S" : "V";
+      const anoInput = document.getElementById("ano");
+      const mesInput = document.getElementById("mes");
+      const ano = anoInput ? anoInput.value : "";
+      const mes = mesInput ? mesInput.value : "";
+      if (!empresaId) return;
+      try {
+        const response = await fetch(`/api/grafico_vendas?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+        if (!response.ok) throw new Error("Erro ao carregar gráfico de vendas");
+        const data = await response.json();
+        const labels = Object.keys(data);
+        const valores = Object.values(data);
+        const graficoCanvas = document.getElementById("grafico-barras");
+        if (!graficoCanvas) return;
+        const ctx = graficoCanvas.getContext("2d");
+        if (window.graficoBarras) {
+          window.graficoBarras.destroy();
+        }
+        window.graficoBarras = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Vendas por Dia",
+              data: valores,
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+              barPercentage: 0.7,
+              categoryPercentage: 0.7,
+              hitRadius: 10,
+              hoverBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            devicePixelRatio: 2,
+            interaction: {
+              mode: "index",
+              intersect: false
+            },
+            scales: {
+              x: {
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 0,
+                  minRotation: 0,
+                  font: {
+                    size: 12
+                  },
+                  padding: 5
+                }
+              },
+              y: {
+                beginAtZero: true
+              }
+            },
+            plugins: {
+              tooltip: {
+                bodyFont: {
+                  size: 12
+                }
+              },
+              legend: {
+                display: true,
+                labels: {
+                  font: {
+                    size: 12
+                  }
+                }
+              }
+            },
+            hover: {
+              mode: "nearest",
+              intersect: false
+            }
+          }
         });
-}
-
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-}
-
-function formatarQuantidade(quantidade) {
-    quantidade = Number(quantidade); // Converte para número
-    return quantidade % 1 === 0 ? quantidade.toFixed(0) : quantidade.toFixed(2).replace(/\.0+$/, '');
-}
-
-
-window.onload = () => {
-    atualizarVendedores();
-    ajustarCanvas();
-};
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  
+    // --- Função para carregar a meta e renderizar o gráfico de rosca
+    async function carregarMeta() {
+      const empresaSelect = document.getElementById("empresa-select");
+      if (!empresaSelect) return;
+      const empresaId = empresaSelect.value;
+      const vendedorSelect = document.getElementById("vendedor-selecao");
+      if (!vendedorSelect) return;
+      const vendedorId = vendedorSelect.value;
+      if (!empresaId) return;
+      try {
+        const metaResponse = await fetch(`/api/meta?empresa_id=${empresaId}&vendedor_id=${vendedorId}`);
+        if (!metaResponse.ok) throw new Error("Erro ao carregar meta");
+        const metaData = await metaResponse.json();
+        const meta = parseFloat(metaData.Meta) || 0;
+        const anoInput = document.getElementById("ano");
+        const mesInput = document.getElementById("mes");
+        const ano = anoInput ? anoInput.value : "";
+        const mes = mesInput ? mesInput.value : "";
+        const statusToggle = document.getElementById("status-toggle");
+        const status = statusToggle && statusToggle.checked ? "S" : "V";
+        const vendaResponse = await fetch(`/api/vendas_total?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+        if (!vendaResponse.ok) throw new Error("Erro ao carregar total de vendas");
+        const vendaData = await vendaResponse.json();
+        const vendaTotal = parseFloat(vendaData.total) || 0;
+        const falta = meta - vendaTotal;
+        const valorMetaEl = document.getElementById("valor-meta");
+        if (valorMetaEl) {
+          valorMetaEl.textContent = `Sua meta este mês é ${meta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+        }
+        const mensagemMetaEl = document.getElementById("mensagem-meta");
+        const mensagemVendaEl = document.getElementById("mensagem-venda");
+        if (vendaTotal >= meta) {
+          if (mensagemMetaEl) mensagemMetaEl.textContent = "Parabéns, você bateu a meta!";
+        } else {
+          if (mensagemMetaEl) mensagemMetaEl.textContent = `Falta ${falta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} para alcançar a meta`;
+        }
+        if (mensagemVendaEl) {
+          mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+        }
+        const graficoRoscaCanvas = document.getElementById("grafico-rosca");
+        if (graficoRoscaCanvas) {
+          const ctxRosca = graficoRoscaCanvas.getContext("2d");
+          if (window.graficoRosca) {
+            window.graficoRosca.destroy();
+          }
+          const achieved = Math.min(vendaTotal, meta);
+          const missing = meta - achieved;
+          window.graficoRosca = new Chart(ctxRosca, {
+            type: "doughnut",
+            data: {
+              labels: ["Batido", "Falta"],
+              datasets: [{
+                data: [achieved, missing],
+                backgroundColor: ["rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)"],
+                hoverBackgroundColor: ["rgba(54, 162, 235, 0.8)", "rgba(255, 99, 132, 0.8)"]
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "bottom"
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    }
+  
+    // --- Função para buscar pedido
+    async function buscarPedido() {
+      const pedidoInputEl = document.getElementById("busca-pedido");
+      if (!pedidoInputEl) return;
+      const pedidoInput = pedidoInputEl.value.trim();
+      const empresaSelect = document.getElementById("empresa-select");
+      if (!pedidoInput || !empresaSelect || !empresaSelect.value) {
+        alert("Preencha o número do pedido e selecione a empresa.");
+        return;
+      }
+      try {
+        const empresaId = empresaSelect.value;
+        const response = await fetch(`/api/buscar_pedido?pedido=${pedidoInput}&empresa_id=${empresaId}`);
+        if (!response.ok) throw new Error("Erro ao buscar pedido");
+        const data = await response.json();
+        const tbodyPedido = document.getElementById("tabela-corpo");
+        if (tbodyPedido) {
+          tbodyPedido.innerHTML = "";
+          if (data.order && Object.keys(data.order).length > 0) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${data.order.PEDIDO}</td>
+              <td>${data.order.NomeCliente}</td>
+              <td>${Number(data.order.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+              <td>${data.order.DataVenda}</td>
+            `;
+            tbodyPedido.appendChild(tr);
+          } else {
+            tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
+          }
+        }
+        const tbodyProdutos = document.getElementById("produtos-corpo");
+        if (tbodyProdutos) {
+          tbodyProdutos.innerHTML = "";
+          if (data.products && data.products.length > 0) {
+            data.products.forEach(product => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${product.IDProduto}</td>
+                <td>${product.Descrição}</td>
+                <td>${product.Quantidade}</td>
+                <td>${Number(product.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+                <td>${Number(product.Total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+              `;
+              tbodyProdutos.appendChild(tr);
+            });
+          } else {
+            tbodyProdutos.innerHTML = "<tr><td colspan='5'>Nenhum produto encontrado.</td></tr>";
+          }
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  
+    // --- Registra os event listeners para atualizações
+    const empresaSelectEl = document.getElementById("empresa-select");
+    if (empresaSelectEl) {
+      empresaSelectEl.addEventListener("change", function () {
+        carregarVendasTotal();
+        carregarVendasDetalhes();
+        carregarGraficoVendas();
+        carregarMeta();
+      });
+    }
+    const vendedorSelectEl = document.getElementById("vendedor-selecao");
+    if (vendedorSelectEl) {
+      vendedorSelectEl.addEventListener("change", function () {
+        carregarVendasTotal();
+        carregarVendasDetalhes();
+        carregarGraficoVendas();
+        carregarMeta();
+      });
+    }
+    const statusToggleEl = document.getElementById("status-toggle");
+    if (statusToggleEl) {
+      statusToggleEl.addEventListener("change", function () {
+        carregarVendasTotal();
+        carregarVendasDetalhes();
+        carregarGraficoVendas();
+        carregarMeta();
+      });
+    }
+    const anoEl = document.getElementById("ano");
+    if (anoEl) {
+      anoEl.addEventListener("change", function () {
+        carregarVendasTotal();
+        carregarVendasDetalhes();
+        carregarGraficoVendas();
+        carregarMeta();
+      });
+    }
+    const mesEl = document.getElementById("mes");
+    if (mesEl) {
+      mesEl.addEventListener("change", function () {
+        carregarVendasTotal();
+        carregarVendasDetalhes();
+        carregarGraficoVendas();
+        carregarMeta();
+      });
+    }
+    const btnBuscarPedido = document.getElementById("buscar-pedido");
+    if (btnBuscarPedido) {
+      btnBuscarPedido.addEventListener("click", buscarPedido);
+    }
+    const buscaPedidoInput = document.getElementById("busca-pedido");
+    if (buscaPedidoInput) {
+      buscaPedidoInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          buscarPedido();
+        }
+      });
+    }
+  });  

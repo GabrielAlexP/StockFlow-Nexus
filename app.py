@@ -8,6 +8,9 @@ from blueprints.ranking import ranking_bp
 from blueprints.cnpj import cnpj_bp
 from blueprints.fiscal import fiscal_bp
 from blueprints.dashboard import admin_bp
+from blueprints.dashboard import gerente_bp
+from blueprints.dashboard import vendedor_bp
+
 app = Flask(__name__)
 
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -19,6 +22,8 @@ app.register_blueprint(ranking_bp)
 app.register_blueprint(cnpj_bp)
 app.register_blueprint(fiscal_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(gerente_bp)
+app.register_blueprint(vendedor_bp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

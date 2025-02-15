@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="../static/css/vendedor.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
     <!-- Barra de Cabeçalho -->
     <header>
@@ -61,7 +63,6 @@
                 <option value="dezembro">Dezembro</option>
             </select>
         </div>
-
         <!-- Seleção de Ano -->
         <div class="selecao-ano">
             <label for="ano">Ano:</label>
@@ -84,8 +85,8 @@
             <p id="lucro-total">0</p>
         </div>
         <div class="caixa">
-            <h3>Meta</h3>
-            <p id="meta">0</p>
+            <h3>Comissão</h3>
+            <p id="comissao">0</p>
         </div>
     </div>
 
@@ -93,7 +94,6 @@
     <div class="area-principal">
         <!-- Seção Esquerda -->
         <div class="left-page">
-            <!-- Gráfico de Rosca e Select de Metas -->
             <div class="area-metas">
                 <!-- Gráfico de Rosca -->
                 <div class="grafico-rosca">
@@ -110,7 +110,8 @@
                         </select>
                         <select id="personalizado" class="metas-select" style="display: none;"></select>
                     </div>
-                    <!-- Mensagem da Meta -->
+                    <!-- Mensagens da Meta -->
+                    <p id="valor-meta" class="mensagem-meta">Sua meta este mês é Z</p>
                     <p id="mensagem-meta" class="mensagem-meta">Falta X para alcançar a meta</p>
                     <p id="mensagem-venda" class="mensagem-venda">Você já vendeu Y</p>
                 </div>
@@ -128,7 +129,6 @@
                 <input type="text" id="busca-pedido" class="input-busca">
                 <button id="buscar-pedido" class="botao-busca">Buscar</button>
             </div>
-
             <!-- Tabela de Pedidos -->
             <div class="tabela-pedidos">
                 <table>
@@ -145,7 +145,6 @@
                     </tbody>
                 </table>
             </div>
-
             <!-- Tabela de Produtos -->
             <div class="tabela-produtos">
                 <table>
@@ -171,8 +170,8 @@
         <canvas id="grafico-barras"></canvas>
     </div>
 
-    <!-- Scripts para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../static/vendedor.js"></script>
+    <script src="../static/js/vendedor.js"></script>
 </body>
+
 </html>

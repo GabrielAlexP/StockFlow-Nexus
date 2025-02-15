@@ -297,136 +297,168 @@ function fecharDetalhes() {
     resultados.style.display = 'block';
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Recupera os dados do usuário armazenados
-    const usuarioData = sessionStorage.getItem("usuario");
-    
-    if (usuarioData) {
-        const usuario = JSON.parse(usuarioData);
-    } else {
-        console.warn("Nenhum dado de usuário encontrado.");
-    }
-});
 
 document.addEventListener("DOMContentLoaded", function () {
+    // ===== Verificação de Acesso para a Página de Estoque =====
+    const usuarioData = sessionStorage.getItem("usuario");
+    if (!usuarioData) {
+      alert("Usuário não autenticado! Redirecionando para a página de login...");
+      window.location.href = "/";
+      return;
+    }
+    let usuario;
+    try {
+      usuario = JSON.parse(usuarioData);
+    } catch (e) {
+      alert("Erro ao processar os dados do usuário. Redirecionando para a página de login.");
+      sessionStorage.clear();
+      window.location.href = "/";
+      return;
+    }
+    if (!usuario.Cargo || usuario.Cargo.trim() === "") {
+      alert("Cargo não definido! Redirecionando para a página de login...");
+      window.location.href = "/";
+      return;
+    }
+    const cargo = usuario.Cargo.trim().toLowerCase();
+    if (cargo !== "admin" && cargo !== "estoque") {
+      window.location.href = "/portal";
+      return;
+    }
+    // Se chegou aqui, o acesso está liberado para usuários com cargo "admin" ou "estoque".
+  
+    // ===== Menu Responsivo =====
     const menuIcon = document.getElementById("menu-icon");
     const nav = document.querySelector("nav");
-
-    menuIcon.addEventListener("click", function () {
-        nav.classList.toggle("active"); // Abre/fecha o menu ao clicar
-    });
-
-    // Fecha o menu se clicar fora dele
-    document.addEventListener("click", function (event) {
+    if (menuIcon && nav) {
+      menuIcon.addEventListener("click", function () {
+        nav.classList.toggle("active");
+      });
+      document.addEventListener("click", function (event) {
         if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-            nav.classList.remove("active");
+          nav.classList.remove("active");
         }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const opcoesEstoque = document.getElementById('opcoesEstoque');
-    const opcoesVendas = document.getElementById('opcoesVendas');
-    const usuario = JSON.parse(sessionStorage.getItem("usuario"));
-
+      });
+    }
+  
+    // ===== Funções de Navegação (Opções) =====
+    const opcoesEstoque = document.getElementById("opcoesEstoque");
+    const opcoesVendas = document.getElementById("opcoesVendas");
+  
     function verificarPermissaoEstoque() {
-        if (!usuario) {
-            alert('Usuário não autenticado!');
-            return false;
-        }
-        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-        const cargosPermitidos = ['admin', 'estoque'];
-
-        if (!cargosPermitidos.includes(cargoNormalizado)) {
-            alert('Você não tem permissão para acessar esta página!');
-            return false;
-        }
-        return true;
+      if (!usuario) {
+        alert("Usuário não autenticado!");
+        return false;
+      }
+      const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+      const cargosPermitidos = ["admin", "estoque"];
+      if (!cargosPermitidos.includes(cargoNormalizado)) {
+        alert("Você não tem permissão para acessar esta página!");
+        return false;
+      }
+      return true;
     }
-
+  
+    // (Mantive esta função para consistência, mesmo que na página de Estoque ela não seja o foco)
     function verificarPermissaoVendas() {
-        if (!usuario) {
-            alert('Usuário não autenticado!');
-            return false;
-        }
-        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-        const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-
-        if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
-            alert('Você não tem permissão para acessar esta página!');
-            return false;
-        }
-        return true;
+      if (!usuario) {
+        alert("Usuário não autenticado!");
+        return false;
+      }
+      const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
+      const cargosPermitidosVendas = ["admin", "vendedor", "gerente", "supervisor"];
+      if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
+        alert("Você não tem permissão para acessar esta página!");
+        return false;
+      }
+      return true;
     }
-
+  
     function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-        outraLista.innerHTML = '';
-        lista.innerHTML = '';
-        if (!verificarPermissao()) return;
-
+      if (outraLista) outraLista.innerHTML = "";
+      if (lista) lista.innerHTML = "";
+      if (!verificarPermissao()) return;
+      if (lista) {
         // Adiciona o título da navegação
-        lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
-
+        lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
         links.forEach(link => {
-            // Se for o link /fiscal, só adiciona se o usuário for admin
-            if (link.url === '/fiscal') {
-                if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
-                    return; // Não adiciona o link para usuários que não são admin
-                }
+          // Se for o link /fiscal, só adiciona se o usuário for admin
+          if (link.url === "/fiscal") {
+            if (usuario.Cargo.trim().toLowerCase() !== "admin") {
+              return;
             }
-
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-            li.querySelector('a').addEventListener('click', function(e) {
-                if (!verificarPermissao()) {
-                    e.preventDefault();
-                    lista.innerHTML = '';
-                }
+          }
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+          const a = li.querySelector("a");
+          if (a) {
+            a.addEventListener("click", function (e) {
+              if (!verificarPermissao()) {
+                e.preventDefault();
+                lista.innerHTML = "";
+              }
             });
-            lista.appendChild(li);
+          }
+          lista.appendChild(li);
         });
+      }
     }
-
-    document.getElementById('estoqueLink').addEventListener('click', function (e) {
+  
+    // Exemplo: Links da opção Estoque
+    const estoqueLink = document.getElementById("estoqueLink");
+    if (estoqueLink) {
+      estoqueLink.addEventListener("click", function (e) {
         e.preventDefault();
         adicionarLinks(opcoesEstoque, [
-            { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-            { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
-            { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
+          { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
+          { url: "/pedidos", texto: "Status de Pedido", icone: "🔄" },
+          { url: "/fiscal", texto: "Perfil Fiscal V2", icone: "📋" }
         ], verificarPermissaoEstoque, opcoesVendas);
-    });
-
-    document.getElementById('vendasLink').addEventListener('click', function (e) {
-        e.preventDefault();
-        adicionarLinks(opcoesVendas, [
-            { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
-            { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
-        ], verificarPermissaoVendas, opcoesEstoque);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    // Recupera os dados do usuário armazenados
-    const usuarioData = sessionStorage.getItem("usuario");
-
-    if (!usuarioData) {
-        alert("Usuário não autenticado! Redirecionando para a página de login...");
-        window.location.href = "/"; // Ajuste a URL conforme necessário
+      });
     }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
+  
+    // Exemplo: Links da opção Vendas (rota do Dashboard varia conforme o cargo)
+    const vendasLink = document.getElementById("vendasLink");
+    if (vendasLink) {
+      vendasLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        let dashboardUrl = "/";
+        // Exemplo de redirecionamento conforme cargo (pode ser ajustado conforme a lógica da sua aplicação)
+        if (cargo === "admin") {
+          dashboardUrl = "/admin";
+        } else if (cargo === "gerente" || cargo === "supervisor") {
+          dashboardUrl = "/gerente";
+        } else if (cargo === "vendedor") {
+          dashboardUrl = "/vendedor";
+        }
+        adicionarLinks(opcoesVendas, [
+          { url: "/ranking", texto: "Ranking de Vendas", icone: "📊" },
+          { url: dashboardUrl, texto: "Dashboard de Vendas", icone: "🛒" },
+          { url: "/cnpj", texto: "Consulta de CNPJ", icone: "🔎" }
+        ], verificarPermissaoVendas, opcoesEstoque);
+      });
+    }
+  
+    // ===== Verificação Final (Redundante, mas para garantir) =====
+    if (!usuarioData) {
+      alert("Usuário não autenticado! Redirecionando para a página de login...");
+      window.location.href = "/";
+      return;
+    }
+  
+    // ===== Eventos dos Ícones Home e Sair =====
     const homeIcon = document.getElementById("home-icon");
-    const exitIcon = document.getElementById("exit-icon");
-
-    // Redirecionamento para /portal ao clicar no ícone de home
-    homeIcon.addEventListener("click", function () {
+    if (homeIcon) {
+      homeIcon.addEventListener("click", function () {
         window.location.href = "/portal";
-    });
-
-    // Redirecionamento para / e limpeza do sessionStorage ao clicar no ícone de saída
-    exitIcon.addEventListener("click", function () {
-        sessionStorage.clear(); // Remove todas as informações do sessionStorage
-        window.location.href = "/"; // Redireciona para a página inicial
-    });
-});
+      });
+    }
+    const exitIcon = document.getElementById("exit-icon");
+    if (exitIcon) {
+      exitIcon.addEventListener("click", function () {
+        sessionStorage.clear();
+        window.location.href = "/";
+      });
+    }
+  });
+  
