@@ -13,11 +13,11 @@ def admin():
     return render_template('admin.html')
 
 @gerente_bp.route('/gerente')
-def admin():
+def gerente():
     return render_template('gerente.html')
 
 @vendedor_bp.route('/vendedor')
-def admin():
+def vendedor():
     return render_template('vendedor.html')
 
 @admin_bp.route('/api/vendedores', methods=['GET'])
