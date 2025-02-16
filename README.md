@@ -34,6 +34,7 @@ O StockFlow Nexus é um sistema robusto desenvolvido para otimizar funções do 
 
 ## Estrutura do Projeto
 
+```plaintext
 StockFlow Nexus
 ├── config
 │   ├── credenciais.enc.json
