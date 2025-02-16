@@ -34,3 +34,27 @@ O StockFlow Nexus é um sistema robusto desenvolvido para otimizar funções do 
 
 ## Estrutura do Projeto
 
+StockFlow Nexus
+├── config
+│   ├── credenciais.enc.json
+│   ├── chave1
+│   └── chave2
+├── services
+│   ├── database.py         # Gera a conexão com o banco de dados
+│   └── encryption.py       # Gerencia a descriptografia das credenciais
+├── blueprints              # Contém os módulos de cada página/funcionalidade
+│   ├── auth.py
+│   ├── estoque.py
+│   ├── status.py
+│   ├── ranking.py
+│   ├── cnpj.py
+│   ├── fiscal.py
+│   └── dashboard          # Inclui admin, gerente e vendedor
+├── static
+│   ├── js
+│   └── css
+├── templates              # Arquivos HTML das páginas
+│   ├── login.html
+│   ├── portal.html
+│   └── outros arquivos
+└── app.py                 # Aplicativo central
