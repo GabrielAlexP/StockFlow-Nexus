@@ -91,19 +91,24 @@
         <div class="data-field"></div>
       </div>
     </div>
-    <div class="data-row">
-      <div class="data-box data-inscricao">
+    <div class="data-row" id="action-buttons">
+      <div class="data-box">
         <button class="btn-update" id="atualizar">Atualizar Dados</button>
       </div>
-    </div>
-    <div class="data-row">
-      <div class="data-box data-inscricao">
+      <div class="data-box data-select">
+        <select id="inserir-em">
+          <option value="" disabled selected>Deseja inserir em:</option>
+          <option value="cliente">Cliente</option>
+          <option value="fornecedor">Fornecedor</option>
+          <option value="ambos">Ambos</option>
+        </select>
+      </div>
+      <div class="data-box">
         <button class="btn-clear" id="limpar">Limpar Dados</button>
       </div>
     </div>
-  </div>
 
-  <script src="../static/js/cnpj.js"></script>
+    <script src="../static/js/cnpj.js"></script>
 </body>
 
 </html>

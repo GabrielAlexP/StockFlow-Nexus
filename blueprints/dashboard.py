@@ -13,11 +13,11 @@ def admin():
     return render_template('admin.html')
 
 @gerente_bp.route('/gerente')
-def admin():
+def gerente():
     return render_template('gerente.html')
 
 @vendedor_bp.route('/vendedor')
-def admin():
+def vendedor():
     return render_template('vendedor.html')
 
 @admin_bp.route('/api/vendedores', methods=['GET'])
@@ -374,7 +374,7 @@ def buscar_pedido():
         
         # Query para buscar dados do pedido
         query_venda = """
-        SELECT PEDIDO, NomeCliente, Valor, DataVenda 
+        SELECT PEDIDO, NomeCliente, Valor, DataVenda, VENDEDOR 
         FROM Venda 
         WHERE PEDIDO = ? AND IDEmpresa = ?
         """
@@ -385,7 +385,8 @@ def buscar_pedido():
                 "PEDIDO": venda_row.PEDIDO,
                 "NomeCliente": venda_row.NomeCliente,
                 "Valor": venda_row.Valor,
-                "DataVenda": venda_row.DataVenda.strftime("%d/%m/%Y") if hasattr(venda_row.DataVenda, 'strftime') else venda_row.DataVenda
+                "DataVenda": venda_row.DataVenda.strftime("%d/%m/%Y") if hasattr(venda_row.DataVenda, 'strftime') else venda_row.DataVenda,
+                "VENDEDOR": venda_row.VENDEDOR 
             }
         else:
             order = {}
@@ -428,16 +429,21 @@ def get_comissao_supervisor():
         return jsonify({"error": "ID da empresa deve ser numérico"}), 400
 
     try:
+        # Validação do formato de data
         datetime.datetime.strptime(data_inicio, "%Y-%m-%d")
         datetime.datetime.strptime(data_fim, "%Y-%m-%d")
     except ValueError:
         return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
 
+    # Corrigindo: anexar os horários para cobrir o dia inteiro
+    data_inicio_dt = data_inicio + " 00:00:00"
+    data_fim_dt = data_fim + " 23:59:59"
+
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # 1. Buscar o ID do supervisor
+        # Buscar o ID do supervisor
         query_supervisor = """
         SELECT ID_Vendedor 
         FROM Vendedor 
@@ -452,7 +458,7 @@ def get_comissao_supervisor():
         
         id_supervisor = supervisor.ID_Vendedor
 
-        # 2. Calcular a comissão do supervisor
+        # Calcular a comissão do supervisor usando as datas corrigidas
         query_comissao_supervisor = f"""
         SELECT 
             (Total_Comissao_Menos_Frete_Bruto + (0.2 / 100 * Total_Bruto)) AS Comissao_Supervisor
@@ -544,10 +550,10 @@ def get_comissao_supervisor():
         """
 
         params = [
-            data_inicio, data_fim, empresa_id, id_supervisor,  # Comissão Supervisor
-            data_inicio, data_fim, empresa_id, id_supervisor, empresa_id,  # Frete
-            empresa_id, data_inicio, data_fim, empresa_id, empresa_id,  # Total Bruto
-            empresa_id, data_inicio, data_fim, empresa_id  # Total Bruto (continuação)
+            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor,  # Comissão Supervisor
+            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor, empresa_id,  # Frete
+            empresa_id, data_inicio_dt, data_fim_dt, empresa_id, empresa_id,  # Total Bruto
+            empresa_id, data_inicio_dt, data_fim_dt, empresa_id  # Total Bruto (continuação)
         ]
         
         cursor.execute(query_comissao_supervisor, params)
@@ -562,6 +568,7 @@ def get_comissao_supervisor():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @admin_bp.route('/api/comissao_gerente', methods=['GET'])
 def get_comissao_gerente():
