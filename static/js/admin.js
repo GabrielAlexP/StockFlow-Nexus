@@ -36,11 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
   }
-<<<<<<< HEAD
   // Declaramos a empresaId, conforme enviado no dashboard.py
   const empresaId = usuario.Empresa;
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
 
   // --- Menu responsivo
   const menuIcon = document.getElementById("menu-icon");
@@ -191,7 +188,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Erro ao carregar a lista de empresas.");
     }
   }
-<<<<<<< HEAD
 
   // --- Função para carregar vendedores
   async function carregarVendedores() {
@@ -215,32 +211,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         vendedorSelect.appendChild(option);
       });
-=======
-  // Função para carregar vendedores
-  async function carregarVendedores() {
-    const empresaSelect = document.getElementById("empresa-select");
-    const vendedorSelect = document.getElementById("vendedor-selecao");
-
-    if (!empresaSelect || !vendedorSelect) return;
-
-    const empresaId = empresaSelect.value;
-    if (!empresaId) return;
-
-    try {
-      const response = await fetch(`/api/vendedores?empresa_id=${empresaId}`);
-      if (!response.ok) throw new Error("Erro ao carregar vendedores");
-
-      const vendedores = await response.json();
-      vendedorSelect.innerHTML = '<option value="0">Total</option>'; // Opção Total sempre presente
-
-      vendedores.forEach(vendedor => {
-        const option = document.createElement("option");
-        option.value = vendedor.ID_VENDEDOR; // Utiliza o campo como está na resposta
-        option.textContent = vendedor.LogON; // Usa LogON como o nome do vendedor
-        vendedorSelect.appendChild(option);
-      });
-
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
     } catch (error) {
       alert("Erro ao carregar a lista de vendedores.");
     }
@@ -288,11 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-<<<<<<< HEAD
   // --- Função para carregar os detalhes das vendas (exceto comissão)
-=======
-  // --- Função para carregar os detalhes das vendas
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
   async function carregarVendasDetalhes() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -319,7 +285,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (lucroTotalEl) {
         lucroTotalEl.textContent = Number(data.lucro_total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       }
-<<<<<<< HEAD
       // A comissão não é atualizada aqui para evitar sobrescrita
     } catch (error) {
       alert("Erro ao carregar os detalhes de vendas.");
@@ -478,137 +443,6 @@ document.addEventListener("DOMContentLoaded", function () {
           hover: {
             mode: "nearest",
             intersect: false
-=======
-      const comissaoEl = document.getElementById("comissao");
-      if (vendedorSelect.selectedIndex >= 0 && comissaoEl) {
-        const selectedOption = vendedorSelect.options[vendedorSelect.selectedIndex];
-        if (selectedOption && selectedOption.dataset.obs) {
-          const cargoVendedor = selectedOption.dataset.obs.toLowerCase();
-          const mesMap = {
-            "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4,
-            "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
-            "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
-          };
-          let mesInt = mesMap[mes.toLowerCase()];
-          let data_inicio = `${ano}-${("0" + mesInt).slice(-2)}-01`;
-          let lastDay = new Date(ano, mesInt, 0).getDate();
-          let data_fim = `${ano}-${("0" + mesInt).slice(-2)}-${lastDay}`;
-          if (cargoVendedor === "supervisor") {
-            const responseSupervisor = await fetch(`/api/comissao_supervisor?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
-            if (!responseSupervisor.ok) throw new Error("Erro ao carregar a comissão do supervisor");
-            const supervisorData = await responseSupervisor.json();
-            comissaoEl.textContent = Number(supervisorData.comissao_supervisor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          } else if (cargoVendedor === "gerente") {
-            const responseGerente = await fetch(`/api/comissao_gerente?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
-            if (!responseGerente.ok) throw new Error("Erro ao carregar a comissão do gerente");
-            const gerenteData = await responseGerente.json();
-            comissaoEl.textContent = Number(gerenteData.comissao_gerente).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          } else {
-            comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
-          }
-        } else {
-          comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        }
-<<<<<<< HEAD
-      });
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-=======
-      }
-    } catch (error) {
-      alert("Erro ao carregar os detalhes de vendas.");
-    }
-  }
-
-  // --- Função para carregar o gráfico de vendas
-  async function carregarGraficoVendas() {
-    const empresaSelect = document.getElementById("empresa-select");
-    if (!empresaSelect) return;
-    const empresaId = empresaSelect.value;
-    const vendedorSelect = document.getElementById("vendedor-selecao");
-    if (!vendedorSelect) return;
-    const vendedorId = vendedorSelect.value;
-    const statusToggle = document.getElementById("status-toggle");
-    const status = statusToggle && statusToggle.checked ? "S" : "V";
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
-    if (!empresaId) return;
-    try {
-      const response = await fetch(`/api/grafico_vendas?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
-      if (!response.ok) throw new Error("Erro ao carregar gráfico de vendas");
-      const data = await response.json();
-      const labels = Object.keys(data);
-      const valores = Object.values(data);
-      const graficoCanvas = document.getElementById("grafico-barras");
-      if (!graficoCanvas) return;
-      const ctx = graficoCanvas.getContext("2d");
-      if (window.graficoBarras) {
-        window.graficoBarras.destroy();
-      }
-      window.graficoBarras = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "Vendas por Dia",
-            data: valores,
-            backgroundColor: "rgba(54, 162, 235, 0.5)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1,
-            barPercentage: 0.7,
-            categoryPercentage: 0.7,
-            hitRadius: 10,
-            hoverBorderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          devicePixelRatio: 2,
-          interaction: {
-            mode: "index",
-            intersect: false
-          },
-          scales: {
-            x: {
-              ticks: {
-                autoSkip: false,
-                maxRotation: 0,
-                minRotation: 0,
-                font: {
-                  size: 12
-                },
-                padding: 5
-              }
-            },
-            y: {
-              beginAtZero: true
-            }
-          },
-          plugins: {
-            tooltip: {
-              bodyFont: {
-                size: 12
-              }
-            },
-            legend: {
-              display: true,
-              labels: {
-                font: {
-                  size: 12
-                }
-              }
-            }
-          },
-          hover: {
-            mode: "nearest",
-            intersect: false
           }
         }
       });
@@ -617,7 +451,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
   // --- Função para carregar a meta e renderizar o gráfico de rosca
   async function carregarMeta() {
     const empresaSelect = document.getElementById("empresa-select");
@@ -657,10 +490,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (mensagemVendaEl) {
         mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
       }
-<<<<<<< HEAD
   
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       const graficoRoscaCanvas = document.getElementById("grafico-rosca");
       if (graficoRoscaCanvas) {
         const ctxRosca = graficoRoscaCanvas.getContext("2d");
@@ -752,7 +582,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-<<<<<<< HEAD
   // ===== Registra os event listeners para atualizações =====
   const empresaSelectEl = document.getElementById("empresa-select");
   if (empresaSelectEl) {
@@ -762,16 +591,6 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasDetalhes();
       carregarGraficoVendas();
       carregarComissao();
-=======
-  // --- Registra os event listeners para atualizações
-  const empresaSelectEl = document.getElementById("empresa-select");
-  if (empresaSelectEl) {
-    empresaSelectEl.addEventListener("change", function () {
-      carregarVendedores()
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       carregarMeta();
     });
   }
@@ -781,10 +600,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
-<<<<<<< HEAD
       carregarComissao();
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       carregarMeta();
     });
   }
@@ -794,10 +610,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
-<<<<<<< HEAD
       carregarComissao();
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       carregarMeta();
     });
   }
@@ -807,10 +620,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
-<<<<<<< HEAD
       carregarComissao();
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       carregarMeta();
     });
   }
@@ -820,10 +630,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
-<<<<<<< HEAD
       carregarComissao();
-=======
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f
       carregarMeta();
     });
   }
@@ -839,8 +646,4 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-<<<<<<< HEAD
 });
-=======
-});  
->>>>>>> 825bddc798cda10cb19cbc3cdf2af0f4bfbc2a7f

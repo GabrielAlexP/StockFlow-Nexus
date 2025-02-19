@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Vendas e Comissões</title>
+    <style>
+        html,
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #121212;
+            z-index: -1;
+        }
+
+        .container-page {
+            min-height: 300vh;
+            background-color: #121212;
+            padding: 80px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mensal {
+            display: flex;
+            flex-direction: column;
+            min-height: 297mm;
+        }
+
+        .mensal .content {
+            flex: 0 1 auto;
+        }
+
+        .mensal .filler {
+            flex: 1;
+            background-color: #121212;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #4caf50;
+            margin: 0 0 20px;
+        }
+
+        .report-date {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+            color: #a5d6a7;
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #81c784;
+            border-left: 5px solid #4caf50;
+            padding-left: 10px;
+        }
+
+        .underline {
+            border-bottom: 2px solid #4caf50;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            background-color: #121212;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 30px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #2e2e2e;
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #242424;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #1e1e1e;
+        }
+
+        tr:hover {
+            background-color: #333333;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        @page {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-page">
+        <h1>Relatório de Vendas e Comissões</h1>
+        <div class="report-date">
+            Data do Relatório: {{ data.ontem.report_date }}
+        </div>
+        <div class="section-title">Vendedores</div>
+        <div class="underline"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Vendedor</th>
+                    <th>Venda</th>
+                    <th>Lucro</th>
+                    <th>Comissão</th>
+                    <th>Orçamentos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vendedor in data.ontem.vendedores %}
+                <tr>
+                    <td>{{ vendedor.nome }}</td>
+                    <td>{{ vendedor.venda | currency_format }}</td>
+                    <td>{{ vendedor.lucro | currency_format }}</td>
+                    <td>{{ vendedor.comissao | currency_format }}</td>
+                    <td>{{ vendedor.orcamentos }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="section-title">Supervisores</div>
+        <div class="underline"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Supervisor</th>
+                    <th>Venda</th>
+                    <th>Lucro</th>
+                    <th>Comissão</th>
+                    <th>Orçamentos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data.ontem.supervisores %}
+                {% for supervisor in data.ontem.supervisores %}
+                <tr>
+                    <td>{{ supervisor.nome }}</td>
+                    <td>{{ supervisor.venda | currency_format }}</td>
+                    <td>{{ supervisor.lucro | currency_format }}</td>
+                    <td>{{ supervisor.comissao | currency_format }}</td>
+                    <td>{{ supervisor.orcamentos }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhum dado disponível.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <div class="section-title">Gerentes</div>
+        <div class="underline"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gerente</th>
+                    <th>Venda</th>
+                    <th>Lucro</th>
+                    <th>Comissão</th>
+                    <th>Orçamentos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data.ontem.gerentes %}
+                {% for gerente in data.ontem.gerentes %}
+                <tr>
+                    <td>{{ gerente.nome }}</td>
+                    <td>{{ gerente.venda | currency_format }}</td>
+                    <td>{{ gerente.lucro | currency_format }}</td>
+                    <td>{{ gerente.comissao | currency_format }}</td>
+                    <td>{{ gerente.orcamentos }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhum dado disponível.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <div class="section-title">Total</div>
+        <div class="underline"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Total</th>
+                    <th>Venda</th>
+                    <th>Lucro</th>
+                    <th>Comissão</th>
+                    <th>Orçamentos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data.ontem.total %}
+                <tr>
+                    <td>{{ data.ontem.total.nome }}</td>
+                    <td>{{ data.ontem.total.venda | currency_format }}</td>
+                    <td>{{ data.ontem.total.lucro | currency_format }}</td>
+                    <td>{{ data.ontem.total.comissao | currency_format }}</td>
+                    <td>{{ data.ontem.total.orcamentos }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhum dado disponível.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div class="container-page mensal">
+        <div class="content">
+            <h1>Relatório de Vendas e Comissões</h1>
+            <div class="report-date">
+                Data do Relatório: {{ data.mes.report_date }}
+            </div>
+            <div class="section-title">Vendedores</div>
+            <div class="underline"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vendedor</th>
+                        <th>Venda</th>
+                        <th>Lucro</th>
+                        <th>Comissão</th>
+                        <th>Orçamentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendedor in data.mes.vendedores %}
+                    <tr>
+                        <td>{{ vendedor.nome }}</td>
+                        <td>{{ vendedor.venda | currency_format }}</td>
+                        <td>{{ vendedor.lucro | currency_format }}</td>
+                        <td>{{ vendedor.comissao | currency_format }}</td>
+                        <td>{{ vendedor.orcamentos }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="section-title">Supervisores</div>
+            <div class="underline"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Supervisor</th>
+                        <th>Venda</th>
+                        <th>Lucro</th>
+                        <th>Comissão</th>
+                        <th>Orçamentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if data.mes.supervisores %}
+                    {% for supervisor in data.mes.supervisores %}
+                    <tr>
+                        <td>{{ supervisor.nome }}</td>
+                        <td>{{ supervisor.venda | currency_format }}</td>
+                        <td>{{ supervisor.lucro | currency_format }}</td>
+                        <td>{{ supervisor.comissao | currency_format }}</td>
+                        <td>{{ supervisor.orcamentos }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5">Nenhum dado disponível.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <div class="section-title">Gerentes</div>
+            <div class="underline"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gerente</th>
+                        <th>Venda</th>
+                        <th>Lucro</th>
+                        <th>Comissão</th>
+                        <th>Orçamentos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <div class="section-title">Gerentes</div>
+                    <div class="underline"></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gerente</th>
+                                <th>Venda</th>
+                                <th>Lucro</th>
+                                <th>Comissão</th>
+                                <th>Orçamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data.mes.gerentes %}
+                            {% for gerente in data.mes.gerentes %}
+                            <tr>
+                                <td>{{ gerente.nome }}</td>
+                                <td>{{ gerente.venda | currency_format }}</td>
+                                <td>{{ gerente.lucro | currency_format }}</td>
+                                <td>{{ gerente.comissao | currency_format }}</td>
+                                <td>{{ gerente.orcamentos }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5">Nenhum dado disponível.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <!-- Seção de Total -->
+                    <div class="section-title">Total</div>
+                    <div class="underline"></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Total</th>
+                                <th>Venda</th>
+                                <th>Lucro</th>
+                                <th>Comissão</th>
+                                <th>Orçamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data.mes.total %}
+                            <tr>
+                                <td>{{ data.mes.total.nome }}</td>
+                                <td>{{ data.mes.total.venda | currency_format }}</td>
+                                <td>{{ data.mes.total.lucro | currency_format }}</td>
+                                <td>{{ data.mes.total.comissao | currency_format }}</td>
+                                <td>{{ data.mes.total.orcamentos }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5">Nenhum dado disponível.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+        </div>
+        <!-- Div preenchedora para estender o fundo preto até o fim da página -->
+        <div class="filler"></div>
+    </div>
+    <footer></footer>
+</body>
+
+</html>

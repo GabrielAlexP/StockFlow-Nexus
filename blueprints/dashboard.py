@@ -386,7 +386,7 @@ def buscar_pedido():
                 "NomeCliente": venda_row.NomeCliente,
                 "Valor": venda_row.Valor,
                 "DataVenda": venda_row.DataVenda.strftime("%d/%m/%Y") if hasattr(venda_row.DataVenda, 'strftime') else venda_row.DataVenda,
-                "VENDEDOR": venda_row.VENDEDOR 
+                "VENDEDOR": venda_row.VENDEDOR
             }
         else:
             order = {}
