@@ -190,7 +190,6 @@ const cnpjInput = document.getElementById('cnpj');
         const usuarioData = sessionStorage.getItem("usuario");
         if (usuarioData) {
           const usuario = JSON.parse(usuarioData);
-          console.log(usuario)
         } else {
           console.warn("Nenhum dado de usuário encontrado.");
         }
@@ -277,6 +276,7 @@ const cnpjInput = document.getElementById('cnpj');
           adicionarLinks(opcoesEstoque, [
             { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
             { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
+            { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
             { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
           ], verificarPermissaoEstoque, opcoesVendas);
         });

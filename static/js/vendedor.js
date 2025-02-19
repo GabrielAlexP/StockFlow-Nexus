@@ -406,7 +406,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ===== Eventos para Atualização dos Filtros =====
   const statusToggleEl = document.getElementById("status-toggle");
   if (statusToggleEl) {
     statusToggleEl.addEventListener("change", function () {

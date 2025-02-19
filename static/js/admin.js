@@ -116,7 +116,8 @@ document.addEventListener("DOMContentLoaded", function () {
         opcoesEstoque,
         [
           { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
-          { url: "/pedidos", texto: "Status de Pedido", icone: "📜" }
+          { url: "/pedidos", texto: "Status de Pedido", icone: "📜" },
+          { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
         ],
         verificarPermissaoEstoque,
         opcoesVendas
