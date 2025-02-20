@@ -7,6 +7,12 @@ import threading
 import schedule
 import time
 
+from services.decrypt_email import descriptografar_email
+
+credenciais = descriptografar_email()
+remetente = credenciais.get("email")
+senha = credenciais.get("senha")
+
 flask_app = None
 
 def set_flask_app(application):
@@ -14,9 +20,6 @@ def set_flask_app(application):
     flask_app = application
 
 def enviar_email_multiplos_anexos_memoria(anexos, assunto, destinatario):
-    remetente = "21988612012g@gmail.com"
-    senha = "psjo dwsr qlqf fhwx"
-
     msg = MIMEMultipart()
     msg["From"] = remetente
     msg["To"] = destinatario
@@ -46,14 +49,13 @@ def enviar_relatorios_memoria():
     if flask_app is None:
         print("Instância do Flask não definida!")
         return
-    # Utiliza o flask_app para criar um contexto da aplicação
     with flask_app.app_context():
         filename, pdf_bytes = gerar_relatorio_completo_bytes()
     anexos = [(filename, pdf_bytes)]
     enviar_email_multiplos_anexos_memoria(anexos, "Relatório Completo Diário e Mensal", "gabriel@lojascom.com.br")
 
 def configurar_agendamento():
-    schedule.every().day.at("08:00").do(enviar_relatorios_memoria)
+    schedule.every().day.at("14:38").do(enviar_relatorios_memoria)
 
     while True:
         schedule.run_pending()

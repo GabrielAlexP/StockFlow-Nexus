@@ -245,6 +245,28 @@ button:hover {
     background-color: #004d00;
 }
 
+.btn-conferido {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.btn-conferido:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+.btn-conferido.checked {
+    background-color: #218838;
+    cursor: default;
+    opacity: 0.7;
+}
+
+
 table {
     width: 100%;
     border-collapse: collapse;
