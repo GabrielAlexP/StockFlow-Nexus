@@ -104,7 +104,7 @@ def atualizar_data_conferencia():
     id_produto = data["id_produto"]
     id_empresa = data["id_empresa"]
     
-    # Formata a data de hoje no padrão desejado: YYYY-MM-DD 00:00:00
+    
     hoje = date.today().strftime("%Y-%m-%d") + " 00:00:00"
 
     query = """
@@ -116,7 +116,7 @@ def atualizar_data_conferencia():
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
-        # Converte os IDs para string para que a comparação seja feita como nvarchar
+        
         cursor.execute(query, (hoje, str(id_produto), str(id_empresa)))
         conn.commit()
         cursor.close()

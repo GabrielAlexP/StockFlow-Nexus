@@ -147,7 +147,7 @@ def get_report_data():
     today = datetime.now()
     yesterday = today - timedelta(days=1)
 
-    # Período de Ontem
+    
     ontem_start = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0)
     ontem_end = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59)
     data_ontem = get_report_data_for_period(
@@ -156,7 +156,7 @@ def get_report_data():
         yesterday.strftime('%d/%m/%Y')
     )
 
-    # Mapeamento dos meses para os nomes em português
+    
     month_names = {
         1: "Janeiro",
         2: "Fevereiro",
@@ -172,7 +172,7 @@ def get_report_data():
         12: "Dezembro"
     }
 
-    # Período do Mês de Ontem
+    
     month_start = datetime(yesterday.year, yesterday.month, 1, 0, 0, 0)
     last_day = calendar.monthrange(yesterday.year, yesterday.month)[1]
     month_end = datetime(yesterday.year, yesterday.month, last_day, 23, 59, 59)

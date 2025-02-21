@@ -23,77 +23,72 @@ def consultar_cnpj():
     if not cnpj:
         return jsonify({"erro": "CNPJ não fornecido."}), 400
 
-    # Monta a URL usando o CNPJ (ajuste se necessário)
+    
     url = f"{API_URL}{cnpj}"
     headers = {'Authorization': API_KEY}
     params = {'simples': 'true'}
 
     response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        dados = response.json()
-        estado = dados.get("address", {}).get("state")
-        
-        if estado:
-            params["registrations"] = estado
-            response = requests.get(url, headers=headers, params=params)
-            if response.status_code == 200:
-                dados = response.json()
-        
-        # Processar registrations de forma segura
-        registrations = dados.get("registrations")
-        if registrations and len(registrations) > 0:
-            inscricao_raw = registrations[0].get("number", "")
-            inscricao_estadual = formatar_inscricao_estadual(inscricao_raw) if inscricao_raw else ""
-            inscricao_habilitada = registrations[0].get("enabled", False)
-            tipo_ie = registrations[0].get("type", {}).get("text", "")
-        else:
-            inscricao_estadual = "NÃO CONSTA"
-            inscricao_habilitada = False
-            # Para este caso, definimos o tipo como "IE Não Contribuinte" para que o valor seja 2
-            tipo_ie = "IE Não Contribuinte"
-        
-        # Simples Nacional
-        simples_optant = dados.get("company", {}).get("simples", {}).get("optant", False)
-        simples_valor = 1 if simples_optant else 0
-
-        inscricao_habilitada_valor = 1 if inscricao_habilitada else 0
-
-        # Contribuinte: 2 para "IE Não Contribuinte", 0 para "IE Normal"
-        if "IE Não Contribuinte" in tipo_ie:
-            contribuinte_valor = 2
-        elif "IE Normal" in tipo_ie:
-            contribuinte_valor = 0
-        else:
-            contribuinte_valor = None
-        
-        resultado_filtrado = {
-            "Razao Social": dados.get("company", {}).get("name"),
-            "Endereco": f"{dados.get('address', {}).get('street', '')} {dados.get('address', {}).get('number', '')}",
-            "Rua": dados.get("address", {}).get("street", ""),
-            "Numero": dados.get("address", {}).get("number", ""),
-            "Municipio": dados.get("address", {}).get("city"),
-            "Bairro": dados.get("address", {}).get("district"),
-            "Telefone": f"({dados.get('phones', [{}])[0].get('area', '')}) {dados.get('phones', [{}])[0].get('number', '')[:4]}-{dados.get('phones', [{}])[0].get('number', '')[4:]}",
-            "UF": estado,
-            "CEP": (f"{dados.get('address', {}).get('zip', '')[:5]}-{dados.get('address', {}).get('zip', '')[5:]}"
-                    if dados.get("address", {}).get("zip") else ""),
-            "Inscricao Estadual": inscricao_estadual,
-            "Simples Nacional": simples_valor,
-            "Inscricao Habilitada": inscricao_habilitada_valor,
-            "Contribuinte": contribuinte_valor
-        }
-        
-        return jsonify(resultado_filtrado)
-    else:
+    if response.status_code != 200:
         return jsonify({"erro": f"Não foi possível consultar o CNPJ. Código {response.status_code}"}), response.status_code
+
+    dados = response.json()
+    estado = dados.get("address", {}).get("state")
+    if estado:
+        params["registrations"] = estado
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            dados = response.json()
+
+    registrations = dados.get("registrations")
+    if registrations and len(registrations) > 0:
+        inscricao_raw = registrations[0].get("number", "")
+        inscricao_estadual = formatar_inscricao_estadual(inscricao_raw) if inscricao_raw else ""
+        inscricao_habilitada = registrations[0].get("enabled", False)
+        tipo_ie = registrations[0].get("type", {}).get("text", "")
+    else:
+        inscricao_estadual = "NÃO CONSTA"
+        inscricao_habilitada = False
+        tipo_ie = "IE Não Contribuinte"
+    
+    simples_optant = dados.get("company", {}).get("simples", {}).get("optant", False)
+    simples_valor = 1 if simples_optant else 0
+    inscricao_habilitada_valor = 1 if inscricao_habilitada else 0
+
+    phones = dados.get("phones")
+    if phones and isinstance(phones, list) and len(phones) > 0 and phones[0].get("number"):
+        area = phones[0].get("area", "")
+        number = phones[0].get("number", "")
+        telefone_formatado = f"({area}) {number[:4]}-{number[4:]}"
+    else:
+        telefone_formatado = "NÃO CONSTA"
+
+    resultado_filtrado = {
+        "Razao Social": dados.get("company", {}).get("name"),
+        "Endereco": f"{dados.get('address', {}).get('street', '')} {dados.get('address', {}).get('number', '')}",
+        "Rua": dados.get("address", {}).get("street", ""),
+        "Numero": dados.get("address", {}).get("number", ""),
+        "Municipio": dados.get("address", {}).get("city"),
+        "Bairro": dados.get("address", {}).get("district"),
+        "Telefone": telefone_formatado,
+        "UF": estado,
+        "CEP": (f"{dados.get('address', {}).get('zip', '')[:5]}-{dados.get('address', {}).get('zip', '')[5:]}"
+                if dados.get("address", {}).get("zip") else ""),
+        "Inscricao Estadual": inscricao_estadual,
+        "Simples Nacional": simples_valor,
+        "Inscricao Habilitada": inscricao_habilitada_valor,
+        "Contribuinte": 2 if "IE Não Contribuinte" in tipo_ie else (0 if "IE Normal" in tipo_ie else None)
+    }
+    
+    return jsonify(resultado_filtrado)
+
 
 def formatar_inscricao_estadual(ie):
     """Formata a Inscrição Estadual no formato XX.XXX.XX-X, se tiver 8 dígitos"""
     ie = ie.strip() if ie else ""
     if ie and len(ie) == 8 and ie.isdigit():
         return f"{ie[:2]}.{ie[2:5]}.{ie[5:7]}-{ie[7:]}"
-    return ie  # Retorna sem formatação se não atender ao esperado
+    return ie 
 
 @cnpj_bp.route('/api/atualizar_dados', methods=['POST'])
 def atualizar_dados():
@@ -103,7 +98,7 @@ def atualizar_dados():
         vendedor = dados_input.get("vendedor")
         nome_usuario = dados_input.get("nome")
         empresa_usuario = dados_input.get("empresa")
-        inserir_em = dados_input.get("inserir_em")  # deve ser "cliente", "fornecedor" ou "ambos"
+        inserir_em = dados_input.get("inserir_em")  
 
         if not cnpj:
             return jsonify({"erro": "CNPJ não fornecido."}), 400
@@ -114,7 +109,7 @@ def atualizar_dados():
         if not nome_usuario or not empresa_usuario:
             return jsonify({"erro": "Dados do usuário incompletos."}), 400
 
-        # Remove formatação do CNPJ para a consulta
+        
         cnpj_numeros = cnpj.replace(".", "").replace("/", "").replace("-", "")
         url = f"{API_URL}{cnpj_numeros}"
         headers = {'Authorization': API_KEY}
@@ -132,7 +127,7 @@ def atualizar_dados():
             if response.status_code == 200:
                 dados_consulta = response.json()
 
-        # Processa a inscrição estadual
+        
         registrations = dados_consulta.get("registrations")
         if registrations and len(registrations) > 0:
             inscricao_raw = registrations[0].get("number", "")
@@ -142,11 +137,11 @@ def atualizar_dados():
             inscricao_estadual = "NÃO CONSTA"
             inscricao_habilitada = False
 
-        # Se for "NÃO CONSTA", converte para string vazia
+        
         if inscricao_estadual.upper() == "NÃO CONSTA":
             inscricao_estadual = ""
 
-        # Cálculos e definições adicionais
+        
         carac_tributacao = 3 if inscricao_habilitada else 7
         finalidade = 0 if inscricao_habilitada else 2
         consumidor_final = 0 if inscricao_habilitada else 1
@@ -154,6 +149,15 @@ def atualizar_dados():
         simples_valor = 1 if simples_optant else 0
         indIEdest_valor = 2 if carac_tributacao == 7 else 0 if carac_tributacao == 3 else None
         data_alteracao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        
+        phones = dados_consulta.get("phones")
+        if phones and isinstance(phones, list) and len(phones) > 0 and phones[0].get("number"):
+            area = phones[0].get("area", "")
+            number = phones[0].get("number", "")
+            telefone_formatado = f"({area}) {number[:4]}-{number[4:]}"
+        else:
+            telefone_formatado = ""
 
         update_data = {
             "Razao Social": dados_consulta.get("company", {}).get("name") or "",
@@ -165,10 +169,7 @@ def atualizar_dados():
                     if dados_consulta.get("address", {}).get("zip") else ""),
             "Municipio": dados_consulta.get("address", {}).get("city") or "",
             "UF": estado or "",
-            "Telefone": (f"({dados_consulta.get('phones', [{}])[0].get('area', '')}) "
-                         f"{dados_consulta.get('phones', [{}])[0].get('number', '')[:4]}-"
-                         f"{dados_consulta.get('phones', [{}])[0].get('number', '')[4:]}"
-                         if dados_consulta.get("phones") and dados_consulta.get("phones")[0].get("number") else ""),
+            "Telefone": telefone_formatado,
             "DataAlteracao": data_alteracao,
             "Vendedor": vendedor
         }
@@ -180,10 +181,10 @@ def atualizar_dados():
             if not empresas:
                 return jsonify({"erro": "Nenhuma empresa ativa encontrada."}), 404
 
-            # Define os placeholders para uso nas cláusulas IN
+            
             placeholders = ','.join(['?'] * len(empresas))
 
-            # Consulta o ID do usuário para preencher UsuarioAlteracao
+            
             cursor.execute("SELECT ID FROM dbo.Usuário WHERE IDEmpresa = ? AND USUARIO = ?", (empresa_usuario, nome_usuario))
             usuario_row = cursor.fetchone()
             usuario_alteracao = usuario_row[0] if usuario_row else None
@@ -191,7 +192,7 @@ def atualizar_dados():
             msg_pjuridica = ""
             msg_fornecedor = ""
 
-            # Se atualizar em Cliente (PJuridica) ou em Ambos
+            
             if inserir_em in ["cliente", "ambos"]:
                 cursor.execute("""
                     WITH CTE AS (
@@ -202,20 +203,20 @@ def atualizar_dados():
                 """, (cnpj,))
                 resultado_pjuridica = cursor.fetchone()
                 if resultado_pjuridica:
-                    # UPDATE em PJuridica
+                    
                     update_query_pjuridica = f'''
                         UPDATE dbo.Pjuridica
-                        SET RasSocial = ?,
-                            InscEstadual = ?,
-                            Rua = ?,
-                            Num = ?,
-                            Bairro = ?,
-                            CEP = ?,
-                            Cidade = ?,
-                            UF = ?,
-                            Tel01 = ?,
+                        SET RasSocial = CASE WHEN ? = '' THEN RasSocial ELSE ? END,
+                            InscEstadual = CASE WHEN ? = '' THEN InscEstadual ELSE ? END,
+                            Rua = CASE WHEN ? = '' THEN Rua ELSE ? END,
+                            Num = CASE WHEN ? = '' THEN Num ELSE ? END,
+                            Bairro = CASE WHEN ? = '' THEN Bairro ELSE ? END,
+                            CEP = CASE WHEN ? = '' THEN CEP ELSE ? END,
+                            Cidade = CASE WHEN ? = '' THEN Cidade ELSE ? END,
+                            UF = CASE WHEN ? = '' THEN UF ELSE ? END,
+                            Tel01 = CASE WHEN ? = '' THEN Tel01 ELSE ? END,
                             DataAlteracao = ?,
-                            Vendedor = ?,
+                            Vendedor = CASE WHEN ? = '' THEN Vendedor ELSE ? END,
                             UsuarioAlteracao = ?,
                             SimplesNacional = ?,
                             indIEDest = ?,
@@ -225,30 +226,44 @@ def atualizar_dados():
                         WHERE CNPJ = ? AND IDEmpresa IN ({placeholders})
                     '''
                     params_update_pjuridica = (
-                        update_data["Razao Social"][:65],
-                        update_data["Inscricao Estadual"],
-                        update_data["Rua"],
-                        update_data["Numero"],
-                        update_data["Bairro"],
-                        update_data["CEP"],
-                        update_data["Municipio"],
-                        update_data["UF"],
-                        update_data["Telefone"],
+                        
+                        update_data["Razao Social"][:65], update_data["Razao Social"][:65],
+                        
+                        update_data["Inscricao Estadual"], update_data["Inscricao Estadual"],
+                        
+                        update_data["Rua"], update_data["Rua"],
+                        
+                        update_data["Numero"], update_data["Numero"],
+                        
+                        update_data["Bairro"], update_data["Bairro"],
+                        
+                        update_data["CEP"], update_data["CEP"],
+                        
+                        update_data["Municipio"], update_data["Municipio"],
+                        
+                        update_data["UF"], update_data["UF"],
+                        
+                        update_data["Telefone"], update_data["Telefone"],
+                        
                         data_alteracao,
-                        update_data["Vendedor"],
+                        
+                        update_data["Vendedor"], update_data["Vendedor"],
+                        
                         usuario_alteracao,
+                        
                         simples_valor,
                         indIEdest_valor,
                         carac_tributacao,
                         finalidade,
                         consumidor_final,
+                        
                         cnpj,
                         *empresas
                     )
                     cursor.execute(update_query_pjuridica, params_update_pjuridica)
                     msg_pjuridica = "Dados PJuridica atualizados com sucesso."
                 else:
-                    # INSERT em PJuridica
+                    
                     cursor.execute("SELECT MAX(ID_Pjuridica) FROM dbo.Pjuridica;")
                     row = cursor.fetchone()
                     max_id = row[0] if row and row[0] is not None else 0
@@ -297,7 +312,7 @@ def atualizar_dados():
                         inserted_ids.append(novo_id)
                     msg_pjuridica = f"Novo registro PJuridica inserido com sucesso. IDs: {inserted_ids}"
 
-            # Se atualizar em Fornecedor ou em Ambos
+            
             if inserir_em in ["fornecedor", "ambos"]:
                 cursor.execute("SELECT CNPJ FROM dbo.Fornecedor WHERE CNPJ = ?", (cnpj,))
                 resultado_fornecedor = cursor.fetchone()
@@ -374,23 +389,23 @@ def atualizar_dados():
                             empresa,
                             cnpj,
                             (dados_consulta.get("company", {}).get("name") or "")[:65],
-                            "",  # NomeFantasia
+                            "",  
                             update_data["Inscricao Estadual"],
                             None,
                             "REVENDA",
                             dados_consulta.get("address", {}).get("street") or "",
                             dados_consulta.get("address", {}).get("number") or "",
-                            "",  # Complemento
+                            "",  
                             dados_consulta.get("address", {}).get("district") or "",
                             update_data["CEP"],
                             dados_consulta.get("address", {}).get("city") or "",
                             estado or "",
-                            data_alteracao,  # DataReg
+                            data_alteracao,  
                             update_data["Telefone"],
-                            "",  # Tel02
-                            "",  # Email
-                            None,  # HomePage
-                            None,  # OBS
+                            "",  
+                            "",  
+                            None,  
+                            None,  
                             True, True, True, True, True, True,
                             0.0000, 0.0000, 0, 0, 0, 0, 0, 0,
                             None, None, None, None, None, 0,

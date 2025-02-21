@@ -55,7 +55,7 @@ def enviar_relatorios_memoria():
     enviar_email_multiplos_anexos_memoria(anexos, "Relatório Completo Diário e Mensal", "gabriel@lojascom.com.br")
 
 def configurar_agendamento():
-    schedule.every().day.at("14:38").do(enviar_relatorios_memoria)
+    schedule.every().day.at("08:00").do(enviar_relatorios_memoria)
 
     while True:
         schedule.run_pending()

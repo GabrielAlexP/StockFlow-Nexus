@@ -52,7 +52,7 @@ def get_vendedores():
 
 @admin_bp.route('/api/vendas_total', methods=['GET'])
 def get_vendas_total():
-    # Obtém os parâmetros
+    
     empresa_id = request.args.get('empresa_id')
     if not empresa_id:
         return jsonify({"error": "ID da empresa é obrigatório"}), 400
@@ -61,7 +61,7 @@ def get_vendas_total():
     except ValueError:
         return jsonify({"error": "ID da empresa deve ser numérico"}), 400
 
-    vendedor_id = request.args.get('vendedor_id')  # Pode ser "Total"
+    vendedor_id = request.args.get('vendedor_id')  
     status_param = request.args.get('status')
     if not status_param:
         return jsonify({"error": "Status é obrigatório"}), 400
@@ -76,7 +76,7 @@ def get_vendas_total():
     except ValueError:
         return jsonify({"error": "Ano deve ser numérico"}), 400
 
-    # Define o intervalo de datas
+    
     if mes.lower() == "hoje":
         now = datetime.datetime.now()
         ano = now.year
@@ -100,7 +100,7 @@ def get_vendas_total():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         
-        # Se um vendedor específico foi selecionado (não "Total")
+        
         if vendedor_id and vendedor_id != "Total":
             try:
                 vendedor_id_int = int(vendedor_id)
@@ -154,7 +154,7 @@ def get_vendas_detalhes():
     except ValueError:
         return jsonify({"error": "Ano deve ser numérico"}), 400
 
-    # Cálculo do intervalo de datas
+    
     if mes.lower() == "hoje":
         now = datetime.datetime.now()
         ano = now.year
@@ -178,7 +178,7 @@ def get_vendas_detalhes():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # Utilizando CTEs para calcular os agregados uma única vez
+        
         query = """
         WITH FreteCTE AS (
             SELECT PEDIDO, IDEmpresa, SUM(Frete) AS soma_frete
@@ -218,7 +218,7 @@ def get_vendas_detalhes():
         total_valor = 0
         total_frete = 0
         total_custo = 0
-        total_sub = 0  # Comissão incidente sobre o frete
+        total_sub = 0  
 
         for row in rows:
             try:
@@ -324,7 +324,7 @@ def get_meta():
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
-        # Tratar vendedor "Total" de forma case-insensitive
+        
         if vendedor_id.lower() == "total":
             query = "SELECT FAX FROM Vendedor WHERE IDEmpresa = ?"
             cursor.execute(query, (empresa_id,))
@@ -336,7 +336,7 @@ def get_meta():
                     try:
                         meta += float(row[0])
                     except Exception:
-                        # Se a conversão falhar, ignoramos o valor
+                        
                         pass
             return jsonify({"Meta": meta})
         else:
@@ -372,7 +372,7 @@ def buscar_pedido():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         
-        # Query para buscar dados do pedido
+        
         query_venda = """
         SELECT PEDIDO, NomeCliente, Valor, DataVenda, VENDEDOR 
         FROM Venda 
@@ -391,7 +391,7 @@ def buscar_pedido():
         else:
             order = {}
         
-        # Query para buscar produtos do pedido
+        
         query_produtos = """
         SELECT IDProduto, Descrição, Quantidade, Valor, (Quantidade * Valor) AS Total 
         FROM Produto_Venda 
@@ -429,13 +429,13 @@ def get_comissao_supervisor():
         return jsonify({"error": "ID da empresa deve ser numérico"}), 400
 
     try:
-        # Validação do formato de data
+        
         datetime.datetime.strptime(data_inicio, "%Y-%m-%d")
         datetime.datetime.strptime(data_fim, "%Y-%m-%d")
     except ValueError:
         return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
 
-    # Corrigindo: anexar os horários para cobrir o dia inteiro
+    
     data_inicio_dt = data_inicio + " 00:00:00"
     data_fim_dt = data_fim + " 23:59:59"
 
@@ -443,7 +443,7 @@ def get_comissao_supervisor():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # Buscar o ID do supervisor
+        
         query_supervisor = """
         SELECT ID_Vendedor 
         FROM Vendedor 
@@ -458,7 +458,7 @@ def get_comissao_supervisor():
         
         id_supervisor = supervisor.ID_Vendedor
 
-        # Calcular a comissão do supervisor usando as datas corrigidas
+        
         query_comissao_supervisor = f"""
         SELECT 
             (Total_Comissao_Menos_Frete_Bruto + (0.2 / 100 * Total_Bruto)) AS Comissao_Supervisor
@@ -550,10 +550,10 @@ def get_comissao_supervisor():
         """
 
         params = [
-            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor,  # Comissão Supervisor
-            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor, empresa_id,  # Frete
-            empresa_id, data_inicio_dt, data_fim_dt, empresa_id, empresa_id,  # Total Bruto
-            empresa_id, data_inicio_dt, data_fim_dt, empresa_id  # Total Bruto (continuação)
+            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor,  
+            data_inicio_dt, data_fim_dt, empresa_id, id_supervisor, empresa_id,  
+            empresa_id, data_inicio_dt, data_fim_dt, empresa_id, empresa_id,  
+            empresa_id, data_inicio_dt, data_fim_dt, empresa_id  
         ]
         
         cursor.execute(query_comissao_supervisor, params)
@@ -585,7 +585,7 @@ def get_comissao_gerente():
         return jsonify({"error": "ID da empresa deve ser numérico"}), 400
 
     try:
-        # Validação simples do formato da data
+        
         datetime.datetime.strptime(data_inicio, "%Y-%m-%d")
         datetime.datetime.strptime(data_fim, "%Y-%m-%d")
     except ValueError:
@@ -595,7 +595,7 @@ def get_comissao_gerente():
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # Converte para datetime completo
+        
         data_inicio_dt = data_inicio + " 00:00:00"
         data_fim_dt = data_fim + " 23:59:59"
 
@@ -627,9 +627,9 @@ def get_comissao_gerente():
         """
 
         params = [
-            empresa_id, data_inicio_dt, data_fim_dt,   # Pedidos
-            empresa_id, data_inicio_dt, data_fim_dt,       # VendaTotal
-            empresa_id                                   # TotalFrete
+            empresa_id, data_inicio_dt, data_fim_dt,   
+            empresa_id, data_inicio_dt, data_fim_dt,       
+            empresa_id                                   
         ]
 
         cursor.execute(query, params)

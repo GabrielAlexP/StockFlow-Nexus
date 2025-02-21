@@ -6,7 +6,7 @@ from email.utils import parsedate_to_datetime
 
 fiscal_bp = Blueprint('fiscal', __name__)
 
-# ==================== FUNÇÕES DE NEGÓCIO ====================
+
 def get_last_id(tabela):
     """Obtém o último ID da tabela usando a conexão do Flask"""
     try:
@@ -28,7 +28,7 @@ def gerar_registros(ultimo_id, ncm, cfop, origens, codigos):
     carac_trib = {2: "A", 1: "D", 8: "PF", 7: "PJ", 3: "V"}
     map_finalidade = {0: 'R', 1: 'I', 2: 'U'}
     data_atual = datetime.now().strftime("%Y-%m-%d %H:%M:00")
-    usuario = 124  # Valor fixo
+    usuario = 124  
 
     current_id = ultimo_id + 1
 
@@ -80,7 +80,7 @@ def gerar_registros_uf(df_perfil, ultimo_id_uf, uf):
         current_id += 1
     return pd.DataFrame(registros, columns=["Id", "UF", "IdPerfil"])
 
-# ==================== FUNÇÕES DE INSERÇÃO NO BANCO ====================
+
 def verificar_existencia_regra_ipi(regra_ipi):
     """Verifica se a RegraIpi existe na tabela PerfilFiscal_IPI"""
     try:
@@ -258,7 +258,7 @@ def inserir_dados():
             if dados:
                 if tabela == "PerfilFiscal":
                     df = pd.DataFrame(dados)
-                    # Converte DataAlteracao para datetime removendo timezone, se presente
+                    
                     df['DataAlteracao'] = pd.to_datetime(df['DataAlteracao']).dt.tz_localize(None)
                     df = df.astype({
                         'Id': 'int32',

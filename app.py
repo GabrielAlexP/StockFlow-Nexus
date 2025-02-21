@@ -18,7 +18,6 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.jinja_env.filters['currency_format'] = currency_format
 
-# Registra os blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(estoque_bp)
 app.register_blueprint(status_bp)

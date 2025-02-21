@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // ===== Verificação de Acesso =====
   const usuarioData = sessionStorage.getItem("usuario");
   if (!usuarioData) {
-    alert("Usuário não autenticado! Redirecionando para a página de login...");
     window.location.href = "/";
     return;
   }
@@ -10,13 +8,11 @@ document.addEventListener("DOMContentLoaded", function () {
   try {
     usuario = JSON.parse(usuarioData);
   } catch (e) {
-    alert("Erro ao processar os dados do usuário. Redirecionando para a página de login.");
     sessionStorage.clear();
     window.location.href = "/";
     return;
   }
   if (!usuario.Cargo || usuario.Cargo.trim() === "") {
-    alert("Cargo não definido! Redirecionando para a página de login...");
     window.location.href = "/";
     return;
   }
@@ -31,9 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "/portal";
     return;
   }
-  // Se chegou aqui, o usuário é vendedor.
-
-  // ===== Navbar e Menu Responsivo =====
   const menuIcon = document.getElementById("menu-icon");
   const nav = document.querySelector("nav");
   if (menuIcon && nav) {
@@ -46,67 +39,36 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
-  // ===== Navegação (Opções) =====
   const opcoesEstoque = document.getElementById("opcoesEstoque");
   const opcoesVendas = document.getElementById("opcoesVendas");
-
   function verificarPermissaoEstoque() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
+    if (!usuario) return false;
     const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidos = ["admin", "estoque"];
-    if (!cargosPermitidos.includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
+    return ["admin", "estoque"].includes(cargoNormalizado) || false;
   }
-
   function verificarPermissaoVendas() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
+    if (!usuario) return false;
     const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidos = ["admin", "vendedor", "gerente", "supervisor"];
-    if (!cargosPermitidos.includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
+    return ["admin", "vendedor", "gerente", "supervisor"].includes(cargoNormalizado) || false;
   }
-
   function adicionarLinks(lista, links, verificarPermissao, outraLista) {
     if (outraLista) outraLista.innerHTML = "";
     if (lista) lista.innerHTML = "";
     if (!verificarPermissao()) return;
-    if (lista) {
-      // Adiciona o título da navegação
-      lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
-      links.forEach(link => {
-        // Se for o link /fiscal, só adiciona se o usuário for admin
-        if (link.url === "/fiscal") {
-          if (usuario.Cargo.trim().toLowerCase() !== "admin") return;
+    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
+    links.forEach(link => {
+      if (link.url === "/fiscal" && usuario.Cargo.trim().toLowerCase() !== "admin") return;
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+      li.querySelector("a").addEventListener("click", function (e) {
+        if (!verificarPermissao()) {
+          e.preventDefault();
+          lista.innerHTML = "";
         }
-        const li = document.createElement("li");
-        li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-        const a = li.querySelector("a");
-        if (a) {
-          a.addEventListener("click", function (e) {
-            if (!verificarPermissao()) {
-              e.preventDefault();
-              lista.innerHTML = "";
-            }
-          });
-        }
-        lista.appendChild(li);
       });
-    }
+      lista.appendChild(li);
+    });
   }
-
   const estoqueLink = document.getElementById("estoqueLink");
   if (estoqueLink) {
     estoqueLink.addEventListener("click", function (e) {
@@ -118,7 +80,6 @@ document.addEventListener("DOMContentLoaded", function () {
       ], verificarPermissaoEstoque, opcoesVendas);
     });
   }
-
   const vendasLink = document.getElementById("vendasLink");
   if (vendasLink) {
     vendasLink.addEventListener("click", function (e) {
@@ -129,8 +90,6 @@ document.addEventListener("DOMContentLoaded", function () {
       ], verificarPermissaoVendas, opcoesEstoque);
     });
   }
-
-  // ===== Eventos dos Ícones Home e Sair =====
   const homeIcon = document.getElementById("home-icon");
   if (homeIcon) {
     homeIcon.addEventListener("click", function () {
@@ -144,26 +103,18 @@ document.addEventListener("DOMContentLoaded", function () {
       window.location.href = "/";
     });
   }
-
-  // ===== FUNÇÕES ESPECÍFICAS PARA VENDEDOR =====
   const empresaId = usuario.Empresa;
-  const vendedorId = usuario.Vendedor; // ID do vendedor armazenado no sessionStorage
-
-  // Define o mês padrão (em português)
+  const vendedorId = usuario.Vendedor;
   const mesSelect = document.getElementById("mes");
   if (mesSelect) {
     const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-    const mesAtual = meses[new Date().getMonth()];
-    mesSelect.value = mesAtual;
+    mesSelect.value = meses[new Date().getMonth()];
   }
-
   async function carregarVendasTotal() {
     const statusToggle = document.getElementById("status-toggle");
     const status = statusToggle && statusToggle.checked ? "S" : "V";
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
+    const ano = document.getElementById("ano")?.value || "";
+    const mes = document.getElementById("mes")?.value || "";
     try {
       const response = await fetch(`/api/vendas_total?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
       if (!response.ok) throw new Error("Erro ao carregar total de vendas");
@@ -176,14 +127,11 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Erro ao carregar o total de vendas.");
     }
   }
-
   async function carregarVendasDetalhes() {
     const statusToggle = document.getElementById("status-toggle");
     const status = statusToggle && statusToggle.checked ? "S" : "V";
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
+    const ano = document.getElementById("ano")?.value || "";
+    const mes = document.getElementById("mes")?.value || "";
     try {
       const response = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
       if (!response.ok) throw new Error("Erro ao carregar os detalhes de vendas");
@@ -198,14 +146,11 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Erro ao carregar os detalhes de vendas.");
     }
   }
-
   async function carregarGraficoVendas() {
     const statusToggle = document.getElementById("status-toggle");
     const status = statusToggle && statusToggle.checked ? "S" : "V";
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
+    const ano = document.getElementById("ano")?.value || "";
+    const mes = document.getElementById("mes")?.value || "";
     try {
       const response = await fetch(`/api/grafico_vendas?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
       if (!response.ok) throw new Error("Erro ao carregar gráfico de vendas");
@@ -215,9 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const graficoCanvas = document.getElementById("grafico-barras");
       if (!graficoCanvas) return;
       const ctx = graficoCanvas.getContext("2d");
-      if (window.graficoBarras) {
-        window.graficoBarras.destroy();
-      }
+      if (window.graficoBarras) window.graficoBarras.destroy();
       window.graficoBarras = new Chart(ctx, {
         type: "bar",
         data: {
@@ -243,23 +186,18 @@ document.addEventListener("DOMContentLoaded", function () {
       alert(error.message);
     }
   }
-
   async function carregarComissao() {
     const statusToggle = document.getElementById("status-toggle");
     const status = statusToggle && statusToggle.checked ? "S" : "V";
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
+    const ano = document.getElementById("ano")?.value || "";
+    const mes = document.getElementById("mes")?.value || "";
     const mesMap = {
       "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4,
       "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
       "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
     };
     let mesInt = mesMap[mes.toLowerCase()];
-    if (!mesInt) {
-      mesInt = new Date().getMonth() + 1;
-    }
+    if (!mesInt) mesInt = new Date().getMonth() + 1;
     const data_inicio = `${ano}-${("0" + mesInt).slice(-2)}-01`;
     const lastDay = new Date(ano, mesInt, 0).getDate();
     const data_fim = `${ano}-${("0" + mesInt).slice(-2)}-${lastDay}`;
@@ -275,13 +213,10 @@ document.addEventListener("DOMContentLoaded", function () {
       alert(error.message);
     }
   }
-
   async function carregarMeta() {
-    const anoInput = document.getElementById("ano");
-    const mesInput = document.getElementById("mes");
-    const ano = anoInput ? anoInput.value : "";
-    const mes = mesInput ? mesInput.value : "";
-    const status = document.getElementById("status-toggle").checked ? "S" : "V";
+    const ano = document.getElementById("ano")?.value || "";
+    const mes = document.getElementById("mes")?.value || "";
+    const status = document.getElementById("status-toggle")?.checked ? "S" : "V";
     try {
       const metaResponse = await fetch(`/api/meta?empresa_id=${empresaId}&vendedor_id=${vendedorId}`);
       if (!metaResponse.ok) throw new Error("Erro ao carregar meta");
@@ -306,11 +241,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (mensagemVendaEl) {
         mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
       }
-
       const ctxRosca = document.getElementById("grafico-rosca").getContext("2d");
-      if (window.graficoRosca) {
-        window.graficoRosca.destroy();
-      }
+      if (window.graficoRosca) window.graficoRosca.destroy();
       const achieved = Math.min(vendaTotal, meta);
       const missing = meta - achieved;
       window.graficoRosca = new Chart(ctxRosca, {
@@ -326,19 +258,13 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: "bottom"
-            }
-          }
+          plugins: { legend: { display: true, position: "bottom" } }
         }
       });
     } catch (error) {
       alert(error.message);
     }
   }
-
   async function buscarPedido() {
     const pedidoInputEl = document.getElementById("busca-pedido");
     if (!pedidoInputEl) return;
@@ -351,50 +277,32 @@ document.addEventListener("DOMContentLoaded", function () {
       const response = await fetch(`/api/buscar_pedido?pedido=${pedidoInput}&empresa_id=${empresaId}`);
       if (!response.ok) throw new Error("Erro ao buscar pedido");
       const data = await response.json();
-
-      // Verifica se o vendedor do pedido é diferente do usuário logado
       if (data.order && parseInt(data.order.VENDEDOR) !== parseInt(usuario.Vendedor)) {
         alert("Este pedido é de outro vendedor!");
-        // Limpa as tabelas
         const tbodyPedido = document.getElementById("tabela-corpo");
         const tbodyProdutos = document.getElementById("produtos-corpo");
         if (tbodyPedido) tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
         if (tbodyProdutos) tbodyProdutos.innerHTML = "<tr><td colspan='5'>Nenhum produto encontrado.</td></tr>";
         return;
       }
-
-      // Exibe os dados do pedido (se passar na verificação)
       const tbodyPedido = document.getElementById("tabela-corpo");
       if (tbodyPedido) {
         tbodyPedido.innerHTML = "";
         if (data.order && Object.keys(data.order).length > 0) {
           const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${data.order.PEDIDO}</td>
-            <td>${data.order.NomeCliente}</td>
-            <td>${Number(data.order.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-            <td>${data.order.DataVenda}</td>
-          `;
+          tr.innerHTML = `<td>${data.order.PEDIDO}</td><td>${data.order.NomeCliente}</td><td>${Number(data.order.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>${data.order.DataVenda}</td>`;
           tbodyPedido.appendChild(tr);
         } else {
           tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
         }
       }
-
-      // Exibe os produtos do pedido
       const tbodyProdutos = document.getElementById("produtos-corpo");
       if (tbodyProdutos) {
         tbodyProdutos.innerHTML = "";
         if (data.products && data.products.length > 0) {
           data.products.forEach(product => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${product.IDProduto}</td>
-              <td>${product.Descrição}</td>
-              <td>${product.Quantidade}</td>
-              <td>${Number(product.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-              <td>${Number(product.Total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-            `;
+            tr.innerHTML = `<td>${product.IDProduto}</td><td>${product.Descrição}</td><td>${product.Quantidade}</td><td>${Number(product.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td><td>${Number(product.Total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>`;
             tbodyProdutos.appendChild(tr);
           });
         } else {
@@ -405,10 +313,8 @@ document.addEventListener("DOMContentLoaded", function () {
       alert(error.message);
     }
   }
-
-  const statusToggleEl = document.getElementById("status-toggle");
-  if (statusToggleEl) {
-    statusToggleEl.addEventListener("change", function () {
+  if (document.getElementById("status-toggle")) {
+    document.getElementById("status-toggle").addEventListener("change", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
@@ -416,9 +322,8 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarMeta();
     });
   }
-  const anoEl = document.getElementById("ano");
-  if (anoEl) {
-    anoEl.addEventListener("change", function () {
+  if (document.getElementById("ano")) {
+    document.getElementById("ano").addEventListener("change", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
@@ -435,20 +340,14 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarMeta();
     });
   }
-  const btnBuscarPedido = document.getElementById("buscar-pedido");
-  if (btnBuscarPedido) {
-    btnBuscarPedido.addEventListener("click", buscarPedido);
+  if (document.getElementById("buscar-pedido")) {
+    document.getElementById("buscar-pedido").addEventListener("click", buscarPedido);
   }
-  const buscaPedidoInput = document.getElementById("busca-pedido");
-  if (buscaPedidoInput) {
-    buscaPedidoInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        buscarPedido();
-      }
+  if (document.getElementById("busca-pedido")) {
+    document.getElementById("busca-pedido").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") buscarPedido();
     });
   }
-
-  // ===== Inicialização =====
   carregarVendasTotal();
   carregarVendasDetalhes();
   carregarGraficoVendas();

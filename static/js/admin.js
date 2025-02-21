@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // --- Validação do usuário
   let usuarioData = sessionStorage.getItem("usuario");
   if (!usuarioData) {
     alert("Usuário não autenticado! Redirecionando para a página de login...");
@@ -36,10 +35,10 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
   }
-  // Declaramos a empresaId, conforme enviado no dashboard.py
+
   const empresaId = usuario.Empresa;
 
-  // --- Menu responsivo
+  // Menu responsivo
   const menuIcon = document.getElementById("menu-icon");
   const nav = document.querySelector("nav");
   if (menuIcon && nav) {
@@ -53,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- Funções de verificação de permissão
   const opcoesEstoque = document.getElementById("opcoesEstoque");
   const opcoesVendas = document.getElementById("opcoesVendas");
 
@@ -89,23 +87,21 @@ document.addEventListener("DOMContentLoaded", function () {
     if (outraLista) outraLista.innerHTML = "";
     if (lista) lista.innerHTML = "";
     if (!verificarPermissao()) return;
-    if (lista) {
-      lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
-      links.forEach(link => {
-        const li = document.createElement("li");
-        li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-        const a = li.querySelector("a");
-        if (a) {
-          a.addEventListener("click", function (e) {
-            if (!verificarPermissao()) {
-              e.preventDefault();
-              lista.innerHTML = "";
-            }
-          });
-        }
-        lista.appendChild(li);
-      });
-    }
+    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
+    links.forEach(link => {
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
+      const a = li.querySelector("a");
+      if (a) {
+        a.addEventListener("click", function (e) {
+          if (!verificarPermissao()) {
+            e.preventDefault();
+            lista.innerHTML = "";
+          }
+        });
+      }
+      lista.appendChild(li);
+    });
   }
 
   const estoqueLink = document.getElementById("estoqueLink");
@@ -117,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
         [
           { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
           { url: "/pedidos", texto: "Status de Pedido", icone: "📜" },
-          { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
+          { url: "/venda", texto: "Relatório de Vendas", icone: "🗂️" },
         ],
         verificarPermissaoEstoque,
         opcoesVendas
@@ -141,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- Eventos dos ícones Home e Sair
+  // Ícones de navegação
   const homeIcon = document.getElementById("home-icon");
   if (homeIcon) {
     homeIcon.addEventListener("click", function () {
@@ -156,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- Função para carregar empresas
+  // Funções de carregamento
   async function carregarEmpresas() {
     try {
       const response = await fetch("/api/empresas");
@@ -166,13 +162,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!select) return;
       select.innerHTML = "";
       let empresaUsuario = null;
-      if (usuarioData) {
-        try {
-          const usuarioObj = JSON.parse(usuarioData);
-          empresaUsuario = usuarioObj.Empresa;
-        } catch (e) {
-          console.error("Erro ao parsear usuário:", e);
-        }
+      try {
+        const usuarioObj = JSON.parse(usuarioData);
+        empresaUsuario = usuarioObj.Empresa;
+      } catch (e) {
+        console.error("Erro ao parsear usuário:", e);
       }
       empresas.forEach(empresa => {
         const option = document.createElement("option");
@@ -183,14 +177,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         select.appendChild(option);
       });
-      // Dispara o evento "change" para atualizar os dados
       select.dispatchEvent(new Event("change"));
     } catch (error) {
       alert("Erro ao carregar a lista de empresas.");
     }
   }
 
-  // --- Função para carregar vendedores
   async function carregarVendedores() {
     const empresaSelect = document.getElementById("empresa-select");
     const vendedorSelect = document.getElementById("vendedor-selecao");
@@ -206,7 +198,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const option = document.createElement("option");
         option.value = vendedor.ID_VENDEDOR;
         option.textContent = vendedor.LogON;
-        // Armazena o OBS para identificar o cargo (ex.: Supervisor ou Gerente)
         if (vendedor.OBS) {
           option.dataset.obs = vendedor.OBS;
         }
@@ -217,21 +208,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Define o mês padrão
   const mesSelect = document.getElementById("mes");
   if (mesSelect) {
     const meses = [
       "janeiro", "fevereiro", "março", "abril", "maio", "junho",
       "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
     ];
-    const mesAtual = meses[new Date().getMonth()];
-    mesSelect.value = mesAtual;
+    mesSelect.value = meses[new Date().getMonth()];
   }
 
-  // --- Chama o carregamento das empresas
   carregarEmpresas();
 
-  // --- Função para carregar o total de vendas
   async function carregarVendasTotal() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -259,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Função para carregar os detalhes das vendas (exceto comissão)
   async function carregarVendasDetalhes() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -286,13 +272,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (lucroTotalEl) {
         lucroTotalEl.textContent = Number(data.lucro_total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       }
-      // A comissão não é atualizada aqui para evitar sobrescrita
     } catch (error) {
       alert("Erro ao carregar os detalhes de vendas.");
     }
   }
 
-  // --- Função para carregar a comissão correta para Supervisor ou Gerente
   async function carregarComissao() {
     const vendedorSelect = document.getElementById("vendedor-selecao");
     if (!vendedorSelect) return;
@@ -333,7 +317,6 @@ document.addEventListener("DOMContentLoaded", function () {
             comissaoEl.textContent = Number(gerenteData.comissao_gerente).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
           }
         } else {
-          // Caso não seja Supervisor ou Gerente, utiliza o valor padrão da API de detalhes de vendas
           const responseDetalhes = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
           if (!responseDetalhes.ok) throw new Error("Erro ao carregar os detalhes de vendas");
           const dataDetalhes = await responseDetalhes.json();
@@ -345,7 +328,6 @@ document.addEventListener("DOMContentLoaded", function () {
         alert(error.message);
       }
     } else {
-      // Caso não haja OBS, utiliza o valor padrão
       try {
         const responseDetalhes = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
         if (!responseDetalhes.ok) throw new Error("Erro ao carregar os detalhes de vendas");
@@ -359,7 +341,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Função para carregar o gráfico de vendas
   async function carregarGraficoVendas() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -406,45 +387,24 @@ document.addEventListener("DOMContentLoaded", function () {
           responsive: true,
           maintainAspectRatio: false,
           devicePixelRatio: 2,
-          interaction: {
-            mode: "index",
-            intersect: false
-          },
+          interaction: { mode: "index", intersect: false },
           scales: {
             x: {
               ticks: {
                 autoSkip: false,
                 maxRotation: 0,
                 minRotation: 0,
-                font: {
-                  size: 12
-                },
+                font: { size: 12 },
                 padding: 5
               }
             },
-            y: {
-              beginAtZero: true
-            }
+            y: { beginAtZero: true }
           },
           plugins: {
-            tooltip: {
-              bodyFont: {
-                size: 12
-              }
-            },
-            legend: {
-              display: true,
-              labels: {
-                font: {
-                  size: 12
-                }
-              }
-            }
+            tooltip: { bodyFont: { size: 12 } },
+            legend: { display: true, labels: { font: { size: 12 } } }
           },
-          hover: {
-            mode: "nearest",
-            intersect: false
-          }
+          hover: { mode: "nearest", intersect: false }
         }
       });
     } catch (error) {
@@ -452,7 +412,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Função para carregar a meta e renderizar o gráfico de rosca
   async function carregarMeta() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -491,7 +450,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (mensagemVendaEl) {
         mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
       }
-  
+
       const graficoRoscaCanvas = document.getElementById("grafico-rosca");
       if (graficoRoscaCanvas) {
         const ctxRosca = graficoRoscaCanvas.getContext("2d");
@@ -513,12 +472,7 @@ document.addEventListener("DOMContentLoaded", function () {
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: true,
-                position: "bottom"
-              }
-            }
+            plugins: { legend: { display: true, position: "bottom" } }
           }
         });
       }
@@ -528,7 +482,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Função para buscar pedido
   async function buscarPedido() {
     const pedidoInputEl = document.getElementById("busca-pedido");
     if (!pedidoInputEl) return;
@@ -549,11 +502,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.order && Object.keys(data.order).length > 0) {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-              <td>${data.order.PEDIDO}</td>
-              <td>${data.order.NomeCliente}</td>
-              <td>${Number(data.order.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-              <td>${data.order.DataVenda}</td>
-            `;
+            <td>${data.order.PEDIDO}</td>
+            <td>${data.order.NomeCliente}</td>
+            <td>${Number(data.order.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+            <td>${data.order.DataVenda}</td>
+          `;
           tbodyPedido.appendChild(tr);
         } else {
           tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
@@ -566,12 +519,12 @@ document.addEventListener("DOMContentLoaded", function () {
           data.products.forEach(product => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>${product.IDProduto}</td>
-                <td>${product.Descrição}</td>
-                <td>${product.Quantidade}</td>
-                <td>${Number(product.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-                <td>${Number(product.Total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-              `;
+              <td>${product.IDProduto}</td>
+              <td>${product.Descrição}</td>
+              <td>${product.Quantidade}</td>
+              <td>${Number(product.Valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+              <td>${Number(product.Total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+            `;
             tbodyProdutos.appendChild(tr);
           });
         } else {
@@ -583,57 +536,36 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ===== Registra os event listeners para atualizações =====
+  function atualizarDashboard() {
+    carregarVendasTotal();
+    carregarVendasDetalhes();
+    carregarGraficoVendas();
+    carregarComissao();
+    carregarMeta();
+  }
+
   const empresaSelectEl = document.getElementById("empresa-select");
   if (empresaSelectEl) {
     empresaSelectEl.addEventListener("change", function () {
       carregarVendedores();
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
-      carregarComissao();
-      carregarMeta();
+      atualizarDashboard();
     });
   }
   const vendedorSelectEl = document.getElementById("vendedor-selecao");
   if (vendedorSelectEl) {
-    vendedorSelectEl.addEventListener("change", function () {
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
-      carregarComissao();
-      carregarMeta();
-    });
+    vendedorSelectEl.addEventListener("change", atualizarDashboard);
   }
   const statusToggleEl = document.getElementById("status-toggle");
   if (statusToggleEl) {
-    statusToggleEl.addEventListener("change", function () {
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
-      carregarComissao();
-      carregarMeta();
-    });
+    statusToggleEl.addEventListener("change", atualizarDashboard);
   }
   const anoEl = document.getElementById("ano");
   if (anoEl) {
-    anoEl.addEventListener("change", function () {
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
-      carregarComissao();
-      carregarMeta();
-    });
+    anoEl.addEventListener("change", atualizarDashboard);
   }
   const mesEl = document.getElementById("mes");
   if (mesEl) {
-    mesEl.addEventListener("change", function () {
-      carregarVendasTotal();
-      carregarVendasDetalhes();
-      carregarGraficoVendas();
-      carregarComissao();
-      carregarMeta();
-    });
+    mesEl.addEventListener("change", atualizarDashboard);
   }
   const btnBuscarPedido = document.getElementById("buscar-pedido");
   if (btnBuscarPedido) {

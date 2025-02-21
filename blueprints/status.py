@@ -78,8 +78,21 @@ def get_produtos_faltantes(pedido):
                     "QuantidadeFaltante": faltante
                 })
 
-        conn.close()
+        # Busca o estoque atual para os produtos faltantes
+        if produtos_faltantes:
+            query_estoque = """
+            SELECT IDProduto, EstAtual FROM DetEstoque
+            WHERE IDEmpresa = 5 AND IDProduto IN ({});
+            """.format(','.join('?' * len(produtos_faltantes)))
+            prod_ids = [item["IDProduto"] for item in produtos_faltantes]
+            cursor.execute(query_estoque, prod_ids)
+            estoque_dict = {row.IDProduto: row.EstAtual for row in cursor.fetchall()}
+            # Adiciona o estoque atual a cada objeto
+            for item in produtos_faltantes:
+                item["EstAtual"] = estoque_dict.get(item["IDProduto"], 0)
 
+        conn.close()
+        
         return jsonify(produtos_faltantes)
 
     except Exception as e:
