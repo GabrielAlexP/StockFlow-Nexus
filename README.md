@@ -167,7 +167,7 @@ A funcionalidade de relatórios do sistema é responsável por extrair, compilar
   </tr>
 </table>
 
-
+> **Nota:** Todos os dados exibidos nas imagens são **Fictícios**, gerados por mim apenas para visualização para demonstrar a funcionalidade do sistema
 ---
 
 ## 🛠 Tecnologias
@@ -209,3 +209,4 @@ StockFlowNexus/
 └── static/                   🎨 Assets frontend
     ├── css/                  🎨 Estilos globais
     └── js/                   🛠 Scripts principais
+```
