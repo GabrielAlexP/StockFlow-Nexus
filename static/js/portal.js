@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
         adicionarLinks(opcoesEstoque, [
             { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
             { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
+            { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
             { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' }
         ], verificarPermissaoEstoque, opcoesVendas);
     });

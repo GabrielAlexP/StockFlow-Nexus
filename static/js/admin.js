@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
   }
+  // Declaramos a empresaId, conforme enviado no dashboard.py
+  const empresaId = usuario.Empresa;
 
   // --- Menu responsivo
   const menuIcon = document.getElementById("menu-icon");
@@ -114,7 +116,8 @@ document.addEventListener("DOMContentLoaded", function () {
         opcoesEstoque,
         [
           { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
-          { url: "/pedidos", texto: "Status de Pedido", icone: "📜" }
+          { url: "/pedidos", texto: "Status de Pedido", icone: "📜" },
+          { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
         ],
         verificarPermissaoEstoque,
         opcoesVendas
@@ -186,30 +189,29 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Erro ao carregar a lista de empresas.");
     }
   }
-  // Função para carregar vendedores
+
+  // --- Função para carregar vendedores
   async function carregarVendedores() {
     const empresaSelect = document.getElementById("empresa-select");
     const vendedorSelect = document.getElementById("vendedor-selecao");
-
     if (!empresaSelect || !vendedorSelect) return;
-
     const empresaId = empresaSelect.value;
     if (!empresaId) return;
-
     try {
       const response = await fetch(`/api/vendedores?empresa_id=${empresaId}`);
       if (!response.ok) throw new Error("Erro ao carregar vendedores");
-
       const vendedores = await response.json();
-      vendedorSelect.innerHTML = '<option value="0">Total</option>'; // Opção Total sempre presente
-
+      vendedorSelect.innerHTML = '<option value="0">Total</option>';
       vendedores.forEach(vendedor => {
         const option = document.createElement("option");
-        option.value = vendedor.ID_VENDEDOR; // Utiliza o campo como está na resposta
-        option.textContent = vendedor.LogON; // Usa LogON como o nome do vendedor
+        option.value = vendedor.ID_VENDEDOR;
+        option.textContent = vendedor.LogON;
+        // Armazena o OBS para identificar o cargo (ex.: Supervisor ou Gerente)
+        if (vendedor.OBS) {
+          option.dataset.obs = vendedor.OBS;
+        }
         vendedorSelect.appendChild(option);
       });
-
     } catch (error) {
       alert("Erro ao carregar a lista de vendedores.");
     }
@@ -257,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Função para carregar os detalhes das vendas
+  // --- Função para carregar os detalhes das vendas (exceto comissão)
   async function carregarVendasDetalhes() {
     const empresaSelect = document.getElementById("empresa-select");
     if (!empresaSelect) return;
@@ -284,39 +286,76 @@ document.addEventListener("DOMContentLoaded", function () {
       if (lucroTotalEl) {
         lucroTotalEl.textContent = Number(data.lucro_total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       }
-      const comissaoEl = document.getElementById("comissao");
-      if (vendedorSelect.selectedIndex >= 0 && comissaoEl) {
-        const selectedOption = vendedorSelect.options[vendedorSelect.selectedIndex];
-        if (selectedOption && selectedOption.dataset.obs) {
-          const cargoVendedor = selectedOption.dataset.obs.toLowerCase();
-          const mesMap = {
-            "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4,
-            "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
-            "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
-          };
-          let mesInt = mesMap[mes.toLowerCase()];
-          let data_inicio = `${ano}-${("0" + mesInt).slice(-2)}-01`;
-          let lastDay = new Date(ano, mesInt, 0).getDate();
-          let data_fim = `${ano}-${("0" + mesInt).slice(-2)}-${lastDay}`;
-          if (cargoVendedor === "supervisor") {
-            const responseSupervisor = await fetch(`/api/comissao_supervisor?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
-            if (!responseSupervisor.ok) throw new Error("Erro ao carregar a comissão do supervisor");
-            const supervisorData = await responseSupervisor.json();
-            comissaoEl.textContent = Number(supervisorData.comissao_supervisor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          } else if (cargoVendedor === "gerente") {
-            const responseGerente = await fetch(`/api/comissao_gerente?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
-            if (!responseGerente.ok) throw new Error("Erro ao carregar a comissão do gerente");
-            const gerenteData = await responseGerente.json();
-            comissaoEl.textContent = Number(gerenteData.comissao_gerente).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          } else {
-            comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-          }
-        } else {
-          comissaoEl.textContent = Number(data.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-        }
-      }
+      // A comissão não é atualizada aqui para evitar sobrescrita
     } catch (error) {
       alert("Erro ao carregar os detalhes de vendas.");
+    }
+  }
+
+  // --- Função para carregar a comissão correta para Supervisor ou Gerente
+  async function carregarComissao() {
+    const vendedorSelect = document.getElementById("vendedor-selecao");
+    if (!vendedorSelect) return;
+    const vendedorId = vendedorSelect.value;
+    const ano = document.getElementById("ano").value;
+    const mes = document.getElementById("mes").value;
+    const statusToggle = document.getElementById("status-toggle");
+    const status = statusToggle && statusToggle.checked ? "S" : "V";
+    const mesMap = {
+      "janeiro": 1, "fevereiro": 2, "março": 3, "abril": 4,
+      "maio": 5, "junho": 6, "julho": 7, "agosto": 8,
+      "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
+    };
+    let mesInt = mesMap[mes.toLowerCase()];
+    if (!mesInt) {
+      mesInt = new Date().getMonth() + 1;
+    }
+    const data_inicio = `${ano}-${("0" + mesInt).slice(-2)}-01`;
+    const lastDay = new Date(ano, mesInt, 0).getDate();
+    const data_fim = `${ano}-${("0" + mesInt).slice(-2)}-${("0" + lastDay).slice(-2)}`;
+    const selectedOption = vendedorSelect.options[vendedorSelect.selectedIndex];
+    const comissaoEl = document.getElementById("comissao");
+    if (selectedOption && selectedOption.dataset.obs) {
+      const cargoVendedor = selectedOption.dataset.obs.toLowerCase();
+      try {
+        if (cargoVendedor === "supervisor") {
+          const responseSupervisor = await fetch(`/api/comissao_supervisor?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
+          if (!responseSupervisor.ok) throw new Error("Erro ao carregar a comissão do supervisor");
+          const supervisorData = await responseSupervisor.json();
+          if (comissaoEl) {
+            comissaoEl.textContent = Number(supervisorData.comissao_supervisor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          }
+        } else if (cargoVendedor === "gerente") {
+          const responseGerente = await fetch(`/api/comissao_gerente?empresa_id=${empresaId}&data_inicio=${data_inicio}&data_fim=${data_fim}`);
+          if (!responseGerente.ok) throw new Error("Erro ao carregar a comissão do gerente");
+          const gerenteData = await responseGerente.json();
+          if (comissaoEl) {
+            comissaoEl.textContent = Number(gerenteData.comissao_gerente).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          }
+        } else {
+          // Caso não seja Supervisor ou Gerente, utiliza o valor padrão da API de detalhes de vendas
+          const responseDetalhes = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+          if (!responseDetalhes.ok) throw new Error("Erro ao carregar os detalhes de vendas");
+          const dataDetalhes = await responseDetalhes.json();
+          if (comissaoEl) {
+            comissaoEl.textContent = Number(dataDetalhes.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+          }
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    } else {
+      // Caso não haja OBS, utiliza o valor padrão
+      try {
+        const responseDetalhes = await fetch(`/api/vendas_detalhes?empresa_id=${empresaId}&vendedor_id=${vendedorId}&status=${status}&ano=${ano}&mes=${mes}`);
+        if (!responseDetalhes.ok) throw new Error("Erro ao carregar os detalhes de vendas");
+        const dataDetalhes = await responseDetalhes.json();
+        if (comissaoEl) {
+          comissaoEl.textContent = Number(dataDetalhes.total_commissao).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        }
+      } catch (error) {
+        alert(error.message);
+      }
     }
   }
 
@@ -452,6 +491,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (mensagemVendaEl) {
         mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
       }
+  
       const graficoRoscaCanvas = document.getElementById("grafico-rosca");
       if (graficoRoscaCanvas) {
         const ctxRosca = graficoRoscaCanvas.getContext("2d");
@@ -543,14 +583,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // --- Registra os event listeners para atualizações
+  // ===== Registra os event listeners para atualizações =====
   const empresaSelectEl = document.getElementById("empresa-select");
   if (empresaSelectEl) {
     empresaSelectEl.addEventListener("change", function () {
-      carregarVendedores()
+      carregarVendedores();
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
+      carregarComissao();
       carregarMeta();
     });
   }
@@ -560,6 +601,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
+      carregarComissao();
       carregarMeta();
     });
   }
@@ -569,6 +611,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
+      carregarComissao();
       carregarMeta();
     });
   }
@@ -578,6 +621,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
+      carregarComissao();
       carregarMeta();
     });
   }
@@ -587,6 +631,7 @@ document.addEventListener("DOMContentLoaded", function () {
       carregarVendasTotal();
       carregarVendasDetalhes();
       carregarGraficoVendas();
+      carregarComissao();
       carregarMeta();
     });
   }
@@ -602,4 +647,4 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-});  
+});

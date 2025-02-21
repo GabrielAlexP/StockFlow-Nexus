@@ -2,11 +2,14 @@ from flask import Blueprint, render_template, jsonify, request
 import requests
 from services.database import get_connection
 from datetime import datetime
+from services.decrypt_api import descriptografar_api
 
 cnpj_bp = Blueprint('cnpj', __name__)
 
-API_KEY = "147b9e92-75c2-49d0-a626-41d035948f34-0321b847-0e74-4bf8-bb43-0fcc8d73d061"
-API_URL = "https://api.cnpja.com/office/"
+api_config = descriptografar_api()
+API_KEY = api_config.get("API_KEY")
+API_URL = api_config.get("API_URL")
+
 
 @cnpj_bp.route('/cnpj', methods=['GET'])
 def cnpj_page():
@@ -98,13 +101,20 @@ def atualizar_dados():
         dados_input = request.json
         cnpj = dados_input.get("cnpj")
         vendedor = dados_input.get("vendedor")
+        nome_usuario = dados_input.get("nome")
+        empresa_usuario = dados_input.get("empresa")
+        inserir_em = dados_input.get("inserir_em")  # deve ser "cliente", "fornecedor" ou "ambos"
 
         if not cnpj:
             return jsonify({"erro": "CNPJ não fornecido."}), 400
         if not vendedor:
             return jsonify({"erro": "Vendedor não fornecido."}), 400
+        if inserir_em not in ["cliente", "fornecedor", "ambos"]:
+            return jsonify({"erro": "Opção de atualização inválida."}), 400
+        if not nome_usuario or not empresa_usuario:
+            return jsonify({"erro": "Dados do usuário incompletos."}), 400
 
-        # Remover formatação do CNPJ para a consulta
+        # Remove formatação do CNPJ para a consulta
         cnpj_numeros = cnpj.replace(".", "").replace("/", "").replace("-", "")
         url = f"{API_URL}{cnpj_numeros}"
         headers = {'Authorization': API_KEY}
@@ -122,7 +132,7 @@ def atualizar_dados():
             if response.status_code == 200:
                 dados_consulta = response.json()
 
-        # Processar registrations de forma segura
+        # Processa a inscrição estadual
         registrations = dados_consulta.get("registrations")
         if registrations and len(registrations) > 0:
             inscricao_raw = registrations[0].get("number", "")
@@ -132,22 +142,17 @@ def atualizar_dados():
             inscricao_estadual = "NÃO CONSTA"
             inscricao_habilitada = False
 
-        # Condicionais atualizadas
+        # Se for "NÃO CONSTA", converte para string vazia
+        if inscricao_estadual.upper() == "NÃO CONSTA":
+            inscricao_estadual = ""
+
+        # Cálculos e definições adicionais
         carac_tributacao = 3 if inscricao_habilitada else 7
         finalidade = 0 if inscricao_habilitada else 2
         consumidor_final = 0 if inscricao_habilitada else 1
-
         simples_optant = dados_consulta.get("company", {}).get("simples", {}).get("optant", False)
         simples_valor = 1 if simples_optant else 0
-
-        # Nova lógica baseada em carac_tributacao
-        if carac_tributacao == 7:
-            indIEdest_valor = 2
-        elif carac_tributacao == 3:
-            indIEdest_valor = 0
-        else:
-            indIEdest_valor = None
-
+        indIEdest_valor = 2 if carac_tributacao == 7 else 0 if carac_tributacao == 3 else None
         data_alteracao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         update_data = {
@@ -175,193 +180,233 @@ def atualizar_dados():
             if not empresas:
                 return jsonify({"erro": "Nenhuma empresa ativa encontrada."}), 404
 
-            # Verificar se o CNPJ já existe
-            cursor.execute("""
-                WITH CTE AS (
-                    SELECT *, ROW_NUMBER() OVER (PARTITION BY CNPJ ORDER BY (SELECT 0)) AS rn
-                    FROM dbo.Pjuridica
-                )
-                SELECT CNPJ FROM CTE WHERE rn = 1 AND CNPJ = ?
-            """, (cnpj,))
-            resultado = cursor.fetchone()
+            # Define os placeholders para uso nas cláusulas IN
+            placeholders = ','.join(['?'] * len(empresas))
 
-            if resultado:
-                # Se o CNPJ existir, faz UPDATE (limitando "RasSocial" a 65 caracteres)
-                placeholders = ','.join(['?'] * len(empresas))
-                update_query = f'''
-                    UPDATE dbo.Pjuridica
-                    SET RasSocial = ?,
-                        InscEstadual = ?,
-                        Rua = ?,
-                        Num = ?,
-                        Bairro = ?,
-                        CEP = ?,
-                        Cidade = ?,
-                        UF = ?,
-                        Tel01 = ?,
-                        DataAlteracao = ?,
-                        Vendedor = ?,
-                        SimplesNacional = ?,
-                        indIEDest = ?,
-                        CaracTributacao = ?,
-                        Finalidade = ?,
-                        consumidorFinal = ?
-                    WHERE CNPJ = ? AND IDEmpresa IN ({placeholders})
-                '''
-                params_update = (
-                    update_data["Razao Social"][:65],
-                    update_data["Inscricao Estadual"],
-                    update_data["Rua"],
-                    update_data["Numero"],
-                    update_data["Bairro"],
-                    update_data["CEP"],
-                    update_data["Municipio"],
-                    update_data["UF"],
-                    update_data["Telefone"],
-                    update_data["DataAlteracao"],
-                    update_data["Vendedor"],
-                    simples_valor,
-                    indIEdest_valor,
-                    carac_tributacao,
-                    finalidade,
-                    consumidor_final,
-                    cnpj,
-                    *empresas
-                )
-                cursor.execute(update_query, params_update)
-                conn.commit()
-                return jsonify({"mensagem": "Dados atualizados com sucesso."})
-            else:
-                # Se o CNPJ não existir, faz INSERT para cada empresa ativa
-                cursor.execute("SELECT MAX(ID_Pjuridica) FROM dbo.Pjuridica;")
-                row = cursor.fetchone()
-                max_id = row[0] if row and row[0] is not None else 0
-                novo_id = max_id  # Inicializa novo_id
+            # Consulta o ID do usuário para preencher UsuarioAlteracao
+            cursor.execute("SELECT ID FROM dbo.Usuário WHERE IDEmpresa = ? AND USUARIO = ?", (empresa_usuario, nome_usuario))
+            usuario_row = cursor.fetchone()
+            usuario_alteracao = usuario_row[0] if usuario_row else None
 
-                # Lista de 92 colunas (incluindo IDEmpresa e DataReg)
-                columns_insert = [
-                    "ID_Pjuridica", "IDEmpresa", "CNPJ", "RasSocial", "InscEstadual", "Rua", "Num", "Bairro", "CEP", "Cidade", "UF",
-                    "Tel01", "DataAlteracao", "DataReg", "Vendedor", "SimplesNacional", "indIEDest", "CaracTributacao", "Finalidade", "consumidorFinal",
-                    "NomeFantasia", "Contato", "Atividade", "Complemento", "Email", "FAX", "Tel02", "HomePage",
-                    "Sócio01", "CPFSócio01", "RGSócio01", "Sócio02", "CPFSócio02", "RGSócio02", "Sócio03", "CPFSócio03", "RGSócio03",
-                    "RefComercial01", "RefComercial02", "RefBancária01", "RefBancária02", "Bloqueio", "Situação", "Crédito", "Conceito", "OBS",
-                    "Revenda", "BloqueioAVista", "BloqueioAPrazo", "StatusAtivo", "RuaC", "NumC", "ComplementoC", "BairroC", "CEPC", "CidadeC", "UFC",
-                    "RuaE", "NumE", "ComplementoE", "BairroE", "CEPE", "CidadeE", "UFE", "IDTransportadora", "CODUF", "CODMUNICIPIO", "CODUFC", "CODMUNICIPIOC", "CODUFE", "CODMUNICIPIOE",
-                    "OBSVENDA", "TipoE", "CFOPe", "TipoS", "CFOPs", "PersonalizaE", "PersonalizaS", "SETOR", "EspePagamento", "Usuario", "Senha", "ECF", "InscMun", "IND_TRANSITO_PARA_SCWEB",
-                    "COD_EXTERNO_SCWEB", "LIMITE_CAIXAS", "EmailC", "DescontoBoleto", "Indicacao", "TodosAtende", "IdEstrangeiro"
-                ]
-                placeholders_insert = ", ".join(["?"] * len(columns_insert))
-                insert_query = f'''
-                    INSERT INTO dbo.Pjuridica 
-                    ({", ".join(columns_insert)})
-                    VALUES ({placeholders_insert})
-                '''
-                # Parâmetros fixos para as 20 primeiras posições (exceto ID_Pjuridica e IDEmpresa)
-                base_params = (
-                    cnpj,
-                    update_data["Razao Social"][:65],
-                    update_data["Inscricao Estadual"],
-                    update_data["Rua"],
-                    update_data["Numero"],
-                    update_data["Bairro"],
-                    update_data["CEP"],
-                    update_data["Municipio"],
-                    update_data["UF"],
-                    update_data["Telefone"],
-                    update_data["DataAlteracao"],
-                    data_alteracao,  # DataReg
-                    update_data["Vendedor"],
-                    simples_valor,
-                    indIEdest_valor,
-                    carac_tributacao,
-                    finalidade,
-                    consumidor_final
-                )
-                # Parâmetros adicionais fixos (72 valores)
-                additional_params = (
-                    None,    # NomeFantasia
-                    None,    # Contato
-                    None,    # Atividade
-                    None,    # Complemento
-                    None,    # Email
-                    '',      # FAX
-                    '',      # Tel02
-                    None,    # HomePage
-                    None,    # Sócio01
-                    None,    # CPFSócio01
-                    None,    # RGSócio01
-                    None,    # Sócio02
-                    None,    # CPFSócio02
-                    None,    # RGSócio02
-                    None,    # Sócio03
-                    None,    # CPFSócio03
-                    None,    # RGSócio03
-                    None,    # RefComercial01
-                    None,    # RefComercial02
-                    None,    # RefBancária01
-                    None,    # RefBancária02
-                    'NÃO',   # Bloqueio
-                    'BOM',   # Situação
-                    0.0000,  # Crédito
-                    'BOM',   # Conceito
-                    None,    # OBS
-                    1,       # Revenda
-                    0,       # BloqueioAVista
-                    0,       # BloqueioAPrazo
-                    1,       # StatusAtivo
-                    None,    # RuaC
-                    None,    # NumC
-                    None,    # ComplementoC
-                    None,    # BairroC
-                    None,    # CEPC
-                    None,    # CidadeC
-                    None,    # UFC
-                    None,    # RuaE
-                    None,    # NumE
-                    None,    # ComplementoE
-                    None,    # BairroE
-                    None,    # CEPE
-                    None,    # CidadeE
-                    None,    # UFE
-                    None,    # IDTransportadora
-                    None,    # CODUF
-                    None,    # CODMUNICIPIO
-                    None,    # CODUFC
-                    None,    # CODMUNICIPIOC
-                    None,    # CODUFE
-                    None,    # CODMUNICIPIOE
-                    0,       # OBSVENDA
-                    None,    # TipoE
-                    None,    # CFOPe
-                    None,    # TipoS
-                    None,    # CFOPs
-                    0,       # PersonalizaE
-                    0,       # PersonalizaS
-                    None,    # SETOR
-                    0,       # EspePagamento
-                    None,    # Usuario
-                    None,    # Senha
-                    1,       # ECF
-                    None,    # InscMun
-                    None,    # IND_TRANSITO_PARA_SCWEB
-                    None,    # COD_EXTERNO_SCWEB
-                    None,    # LIMITE_CAIXAS
-                    None,    # EmailC
-                    None,    # DescontoBoleto
-                    None,    # Indicacao
-                    0,       # TodosAtende
-                    None     # IdEstrangeiro
-                )
-                inserted_ids = []
-                # Para cada empresa ativa, insere um registro novo.
-                for empresa in empresas:
-                    novo_id += 1
-                    params_insert = (novo_id, empresa) + base_params + additional_params
-                    cursor.execute(insert_query, params_insert)
-                    inserted_ids.append(novo_id)
-                conn.commit()
-                return jsonify({"mensagem": "Novo registro inserido com sucesso.", "IDs_Pjuridica": inserted_ids})
+            msg_pjuridica = ""
+            msg_fornecedor = ""
 
+            # Se atualizar em Cliente (PJuridica) ou em Ambos
+            if inserir_em in ["cliente", "ambos"]:
+                cursor.execute("""
+                    WITH CTE AS (
+                        SELECT *, ROW_NUMBER() OVER (PARTITION BY CNPJ ORDER BY (SELECT 0)) AS rn
+                        FROM dbo.Pjuridica
+                    )
+                    SELECT CNPJ FROM CTE WHERE rn = 1 AND CNPJ = ?
+                """, (cnpj,))
+                resultado_pjuridica = cursor.fetchone()
+                if resultado_pjuridica:
+                    # UPDATE em PJuridica
+                    update_query_pjuridica = f'''
+                        UPDATE dbo.Pjuridica
+                        SET RasSocial = ?,
+                            InscEstadual = ?,
+                            Rua = ?,
+                            Num = ?,
+                            Bairro = ?,
+                            CEP = ?,
+                            Cidade = ?,
+                            UF = ?,
+                            Tel01 = ?,
+                            DataAlteracao = ?,
+                            Vendedor = ?,
+                            UsuarioAlteracao = ?,
+                            SimplesNacional = ?,
+                            indIEDest = ?,
+                            CaracTributacao = ?,
+                            Finalidade = ?,
+                            consumidorFinal = ?
+                        WHERE CNPJ = ? AND IDEmpresa IN ({placeholders})
+                    '''
+                    params_update_pjuridica = (
+                        update_data["Razao Social"][:65],
+                        update_data["Inscricao Estadual"],
+                        update_data["Rua"],
+                        update_data["Numero"],
+                        update_data["Bairro"],
+                        update_data["CEP"],
+                        update_data["Municipio"],
+                        update_data["UF"],
+                        update_data["Telefone"],
+                        data_alteracao,
+                        update_data["Vendedor"],
+                        usuario_alteracao,
+                        simples_valor,
+                        indIEdest_valor,
+                        carac_tributacao,
+                        finalidade,
+                        consumidor_final,
+                        cnpj,
+                        *empresas
+                    )
+                    cursor.execute(update_query_pjuridica, params_update_pjuridica)
+                    msg_pjuridica = "Dados PJuridica atualizados com sucesso."
+                else:
+                    # INSERT em PJuridica
+                    cursor.execute("SELECT MAX(ID_Pjuridica) FROM dbo.Pjuridica;")
+                    row = cursor.fetchone()
+                    max_id = row[0] if row and row[0] is not None else 0
+                    novo_id = max_id
+                    columns_insert_pjuridica = [
+                        "ID_Pjuridica", "IDEmpresa", "CNPJ", "RasSocial", "InscEstadual", "Rua", "Num", "Bairro", "CEP", "Cidade", "UF",
+                        "Tel01", "DataAlteracao", "DataReg", "Vendedor", "UsuarioAlteracao", "SimplesNacional", "indIEDest",
+                        "CaracTributacao", "Finalidade", "consumidorFinal",
+                        "NomeFantasia", "Contato", "Atividade", "Complemento", "Email", "FAX", "Tel02", "HomePage"
+                    ]
+                    placeholders_insert_pjuridica = ", ".join(["?"] * len(columns_insert_pjuridica))
+                    insert_query_pjuridica = f'''
+                        INSERT INTO dbo.Pjuridica 
+                        ({", ".join(columns_insert_pjuridica)})
+                        VALUES ({placeholders_insert_pjuridica})
+                    '''
+                    base_params_pjuridica = (
+                        cnpj,
+                        update_data["Razao Social"][:65],
+                        update_data["Inscricao Estadual"],
+                        update_data["Rua"],
+                        update_data["Numero"],
+                        update_data["Bairro"],
+                        update_data["CEP"],
+                        update_data["Municipio"],
+                        update_data["UF"],
+                        update_data["Telefone"],
+                        update_data["DataAlteracao"],
+                        data_alteracao,
+                        update_data["Vendedor"],
+                        usuario_alteracao,
+                        simples_valor,
+                        indIEdest_valor,
+                        carac_tributacao,
+                        finalidade,
+                        consumidor_final
+                    )
+                    additional_params = (
+                        None, None, None, None, None, '', '', None
+                    )
+                    inserted_ids = []
+                    for empresa in empresas:
+                        novo_id += 1
+                        params_insert_pjuridica = (novo_id, empresa) + base_params_pjuridica + additional_params
+                        cursor.execute(insert_query_pjuridica, params_insert_pjuridica)
+                        inserted_ids.append(novo_id)
+                    msg_pjuridica = f"Novo registro PJuridica inserido com sucesso. IDs: {inserted_ids}"
+
+            # Se atualizar em Fornecedor ou em Ambos
+            if inserir_em in ["fornecedor", "ambos"]:
+                cursor.execute("SELECT CNPJ FROM dbo.Fornecedor WHERE CNPJ = ?", (cnpj,))
+                resultado_fornecedor = cursor.fetchone()
+                if resultado_fornecedor:
+                    update_query_fornecedor = f'''
+                        UPDATE dbo.Fornecedor
+                        SET RasSocial = ?,
+                            InscEsdatual = ?,
+                            Atividade = ?,
+                            Rua = ?,
+                            Num = ?,
+                            Bairro = ?,
+                            Cep = ?,
+                            Cidade = ?,
+                            UF = ?,
+                            Tel01 = ?,
+                            Compras = ?,
+                            PontoColeta = ?,
+                            Estoque = ?,
+                            EmpresaOS = ?,
+                            ContasPagar = ?,
+                            Fabricante = ?,
+                            CaracTributacao = ?,
+                            SimplesNacional = ?,
+                            UsuarioAlteracao = ?,
+                            DataAlteracao = ?
+                        WHERE CNPJ = ? AND IDEmpresa IN ({placeholders})
+                    '''
+                    params_update_fornecedor = (
+                        (dados_consulta.get("company", {}).get("name") or "")[:65],
+                        update_data["Inscricao Estadual"],
+                        "REVENDA",
+                        dados_consulta.get("address", {}).get("street") or "",
+                        dados_consulta.get("address", {}).get("number") or "",
+                        dados_consulta.get("address", {}).get("district") or "",
+                        update_data["CEP"],
+                        dados_consulta.get("address", {}).get("city") or "",
+                        estado or "",
+                        update_data["Telefone"],
+                        True, True, True, True, True, True,
+                        carac_tributacao,
+                        simples_valor,
+                        usuario_alteracao,
+                        data_alteracao,
+                        cnpj,
+                        *empresas
+                    )
+                    cursor.execute(update_query_fornecedor, params_update_fornecedor)
+                    msg_fornecedor = "Dados Fornecedor atualizados com sucesso."
+                else:
+                    cursor.execute("SELECT MAX(ID) FROM dbo.Fornecedor;")
+                    row_fornecedor = cursor.fetchone()
+                    max_id_fornecedor = row_fornecedor[0] if row_fornecedor and row_fornecedor[0] is not None else 0
+                    novo_fornecedor_id = max_id_fornecedor
+                    columns_insert_fornecedor = [
+                        "ID", "IDEmpresa", "CNPJ", "RasSocial", "NomeFantasia", "InscEsdatual", "Contato", "Atividade",
+                        "Rua", "Num", "Complemento", "Bairro", "Cep", "Cidade", "UF", "DataReg", "Tel01", "Tel02", "Email", "HomePage",
+                        "OBS", "Compras", "PontoColeta", "Estoque", "EmpresaOS", "ContasPagar", "Fabricante", "Markup", "Limite",
+                        "TipoLimiteTotal", "COD_EXTERNO_SCWEB", "ProdRural", "TemPerfil", "PagarPara", "UsarPagarPara", "CONTA",
+                        "CLASSE", "SUBCLASSE", "Cnpj_Prod_Rural", "ContaContabil", "IND_TRANSITO_PARA_SCWEB", "CaracTributacao",
+                        "SimplesNacional", "UsuarioAlteracao", "DataAlteracao", "CodComprador", "Credenciadora"
+                    ]
+                    placeholders_insert_fornecedor = ", ".join(["?"] * len(columns_insert_fornecedor))
+                    insert_query_fornecedor = f'''
+                        INSERT INTO dbo.Fornecedor
+                        ({", ".join(columns_insert_fornecedor)})
+                        VALUES ({placeholders_insert_fornecedor})
+                    '''
+                    inserted_fornecedor_ids = []
+                    for empresa in empresas:
+                        novo_fornecedor_id += 1
+                        params_insert_fornecedor = (
+                            novo_fornecedor_id,
+                            empresa,
+                            cnpj,
+                            (dados_consulta.get("company", {}).get("name") or "")[:65],
+                            "",  # NomeFantasia
+                            update_data["Inscricao Estadual"],
+                            None,
+                            "REVENDA",
+                            dados_consulta.get("address", {}).get("street") or "",
+                            dados_consulta.get("address", {}).get("number") or "",
+                            "",  # Complemento
+                            dados_consulta.get("address", {}).get("district") or "",
+                            update_data["CEP"],
+                            dados_consulta.get("address", {}).get("city") or "",
+                            estado or "",
+                            data_alteracao,  # DataReg
+                            update_data["Telefone"],
+                            "",  # Tel02
+                            "",  # Email
+                            None,  # HomePage
+                            None,  # OBS
+                            True, True, True, True, True, True,
+                            0.0000, 0.0000, 0, 0, 0, 0, 0, 0,
+                            None, None, None, None, None, 0,
+                            carac_tributacao,
+                            simples_valor,
+                            usuario_alteracao,
+                            data_alteracao,
+                            0,
+                            0
+                        )
+                        cursor.execute(insert_query_fornecedor, params_insert_fornecedor)
+                        inserted_fornecedor_ids.append(novo_fornecedor_id)
+                    msg_fornecedor = f"Novo registro Fornecedor inserido com sucesso. IDs: {inserted_fornecedor_ids}"
+
+            conn.commit()
+            return jsonify({"mensagem": f"{msg_pjuridica} {msg_fornecedor}"})
     except Exception as e:
         print(f"Erro ao atualizar dados: {e}")
         return jsonify({"erro": str(e)}), 500

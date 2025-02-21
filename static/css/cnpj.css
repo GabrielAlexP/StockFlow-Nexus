@@ -224,6 +224,52 @@ body {
     /* Evita espaçamentos desnecessários */
 }
 
+#action-buttons {
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+#action-buttons .data-box {
+    flex: 0 1 auto;
+    min-width: 150px;
+}
+
+/* Estilo do select */
+.data-select select {
+    padding: 10px 15px;
+    border: 2px solid #00d084;
+    border-radius: 8px;
+    background-color: #1e3d32;
+    color: #e0e0e0;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+}
+
+.data-select select option {
+    background-color: #1e3d32;
+    text-align: left;
+}
+
+/* Esconder elementos inicialmente */
+#action-buttons,
+#inserir-em {
+    display: none;
+}
+
+.data-container.visible #action-buttons,
+.data-container.visible #inserir-em {
+    display: flex;
+}
+
+/* Ajustar botões para manter estilo */
+#action-buttons .btn-update,
+#action-buttons .btn-clear {
+    width: auto;
+    padding: 10px 25px;
+    margin: 0;
+}
 
 /* Parte comum */
 

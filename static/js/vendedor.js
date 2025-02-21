@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (mensagemVendaEl) {
         mensagemVendaEl.textContent = `Você já vendeu ${vendaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
       }
-  
+
       const ctxRosca = document.getElementById("grafico-rosca").getContext("2d");
       if (window.graficoRosca) {
         window.graficoRosca.destroy();
@@ -351,6 +351,19 @@ document.addEventListener("DOMContentLoaded", function () {
       const response = await fetch(`/api/buscar_pedido?pedido=${pedidoInput}&empresa_id=${empresaId}`);
       if (!response.ok) throw new Error("Erro ao buscar pedido");
       const data = await response.json();
+
+      // Verifica se o vendedor do pedido é diferente do usuário logado
+      if (data.order && parseInt(data.order.VENDEDOR) !== parseInt(usuario.Vendedor)) {
+        alert("Este pedido é de outro vendedor!");
+        // Limpa as tabelas
+        const tbodyPedido = document.getElementById("tabela-corpo");
+        const tbodyProdutos = document.getElementById("produtos-corpo");
+        if (tbodyPedido) tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
+        if (tbodyProdutos) tbodyProdutos.innerHTML = "<tr><td colspan='5'>Nenhum produto encontrado.</td></tr>";
+        return;
+      }
+
+      // Exibe os dados do pedido (se passar na verificação)
       const tbodyPedido = document.getElementById("tabela-corpo");
       if (tbodyPedido) {
         tbodyPedido.innerHTML = "";
@@ -367,6 +380,8 @@ document.addEventListener("DOMContentLoaded", function () {
           tbodyPedido.innerHTML = "<tr><td colspan='4'>Nenhum pedido encontrado.</td></tr>";
         }
       }
+
+      // Exibe os produtos do pedido
       const tbodyProdutos = document.getElementById("produtos-corpo");
       if (tbodyProdutos) {
         tbodyProdutos.innerHTML = "";
@@ -391,7 +406,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ===== Eventos para Atualização dos Filtros =====
   const statusToggleEl = document.getElementById("status-toggle");
   if (statusToggleEl) {
     statusToggleEl.addEventListener("change", function () {

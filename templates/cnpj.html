@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Consulta de CNPJ</title>
-  <!-- Fonte Montserrat do Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="../static/css/cnpj.css">
@@ -91,19 +90,24 @@
         <div class="data-field"></div>
       </div>
     </div>
-    <div class="data-row">
-      <div class="data-box data-inscricao">
+    <div class="data-row" id="action-buttons">
+      <div class="data-box">
         <button class="btn-update" id="atualizar">Atualizar Dados</button>
       </div>
-    </div>
-    <div class="data-row">
-      <div class="data-box data-inscricao">
+      <div class="data-box data-select">
+        <select id="inserir-em">
+          <option value="" disabled selected>Deseja inserir em:</option>
+          <option value="cliente">Cliente</option>
+          <option value="fornecedor">Fornecedor</option>
+          <option value="ambos">Ambos</option>
+        </select>
+      </div>
+      <div class="data-box">
         <button class="btn-clear" id="limpar">Limpar Dados</button>
       </div>
     </div>
-  </div>
 
-  <script src="../static/js/cnpj.js"></script>
+    <script src="../static/js/cnpj.js"></script>
 </body>
 
 </html>
