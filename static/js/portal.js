@@ -68,6 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
         { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
         { url: "/pedidos", texto: "Status de Pedido", icone: "🔄" },
         { url: "/venda", texto: "Relatório de Vendas", icone: "🗂️" },
+        { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
         { url: "/fiscal", texto: "Perfil Fiscal V2", icone: "📋" }
       ], verificarPermissaoEstoque, opcoesVendas);
     });

@@ -52,7 +52,7 @@ def enviar_relatorios_memoria():
     with flask_app.app_context():
         filename, pdf_bytes = gerar_relatorio_completo_bytes()
     anexos = [(filename, pdf_bytes)]
-    enviar_email_multiplos_anexos_memoria(anexos, "Relatório Completo Diário e Mensal", "gabriel@lojascom.com.br")
+    enviar_email_multiplos_anexos_memoria(anexos, "Relatório Completo Diário e Mensal", "moises@gessoaparecida.com.br")
 
 def configurar_agendamento():
     schedule.every().day.at("08:00").do(enviar_relatorios_memoria)

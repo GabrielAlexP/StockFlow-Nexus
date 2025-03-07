@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 from services.database import conn_str
 import pyodbc
-from datetime import date
+from datetime import datetime
 
 venda_bp = Blueprint('venda', __name__)
 
@@ -98,26 +98,38 @@ def get_vendas():
 @venda_bp.route("/atualizar_data_conferencia", methods=["POST"])
 def atualizar_data_conferencia():
     data = request.get_json()
-    if not data or "id_produto" not in data or "id_empresa" not in data:
-        return jsonify({"error": "Dados insuficientes. Informe 'id_produto' e 'id_empresa'."}), 400
+    if not data or "id_produto" not in data or "id_empresa" not in data or "nome" not in data:
+        return jsonify({"error": "Dados insuficientes. Informe 'id_produto', 'id_empresa' e 'nome'."}), 400
 
     id_produto = data["id_produto"]
     id_empresa = data["id_empresa"]
-    
-    
-    hoje = date.today().strftime("%Y-%m-%d") + " 00:00:00"
+    nome = data["nome"]
 
-    query = """
-    UPDATE DetEstoque
-    SET DataUltimoInventario = ?
-    WHERE IDProduto = ? AND IDEmpresa = ?
-    """
+    # Obtemos o datetime atual no formato "YYYY-MM-DD HH:MM:SS"
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     try:
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
-        
-        cursor.execute(query, (hoje, str(id_produto), str(id_empresa)))
+
+        # Consulta para buscar o ID do usuário com base no nome e IDEmpresa
+        query_usuario = "SELECT ID FROM dbo.Usuário WHERE IDEmpresa = ? AND USUARIO = ?"
+        cursor.execute(query_usuario, (id_empresa, nome))
+        result = cursor.fetchone()
+        if result:
+            user_id = result[0]
+        else:
+            return jsonify({"error": "Usuário não encontrado."}), 404
+
+        # Atualiza os campos desejados na tabela DetEstoque
+        update_query = """
+        UPDATE DetEstoque
+        SET DataUltimoInventario = ?,
+            Data_AT = ?,
+            User_AT = ?
+        WHERE IDProduto = ? AND IDEmpresa = ?
+        """
+        cursor.execute(update_query, (now, now, user_id, id_produto, id_empresa))
         conn.commit()
         cursor.close()
         conn.close()

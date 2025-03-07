@@ -631,7 +631,7 @@ def get_comissao_gerente():
             empresa_id, data_inicio_dt, data_fim_dt,       
             empresa_id                                   
         ]
-
+ 
         cursor.execute(query, params)
         row = cursor.fetchone()
 

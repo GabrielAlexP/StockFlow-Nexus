@@ -21,18 +21,20 @@ searchForm.addEventListener('submit', function (e) {
   e.preventDefault();
   // Limpa os dados antigos, se houver
   document.querySelectorAll('.data-field').forEach(field => field.textContent = "");
-  
+
   dataContainer.classList.remove('visible');
   void dataContainer.offsetWidth;
   dataContainer.classList.add('visible');
   dataContainer.style.display = 'flex';
   document.getElementById('inserir-em').style.display = 'block';
   document.getElementById('action-buttons').style.display = 'flex';
+
   let cnpj = document.getElementById('cnpj').value.replace(/\D/g, '');
   if (cnpj.length !== 14) {
     alert("Por favor, insira um CNPJ válido com 14 dígitos.");
     return;
   }
+
   fetch("/api/consultar_cnpj", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -52,6 +54,9 @@ searchForm.addEventListener('submit', function (e) {
       document.querySelector(".data-uf .data-field").textContent = data["UF"] || "-";
       document.querySelector(".data-cep .data-field").textContent = data["CEP"] || "-";
       document.querySelector(".data-inscricao .data-field").textContent = data["Inscricao Estadual"] || "-";
+
+      // Atualiza o campo "Simples Nacional" exibindo "Sim" ou "Não"
+      document.querySelector(".data-simples .data-field").textContent = data["Simples Nacional"] === 1 ? "Sim" : "Não";
     })
     .catch(error => console.error("Erro na consulta: ", error));
 });
@@ -114,7 +119,7 @@ document.getElementById("limpar").addEventListener("click", function (e) {
 // PARTE COMPARTILHADA
 
 document.addEventListener("DOMContentLoaded", function () {
-  
+
   const usuarioData = sessionStorage.getItem("usuario");
   if (usuarioData) {
     const usuario = JSON.parse(usuarioData);
@@ -128,10 +133,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const nav = document.querySelector("nav");
 
   menuIcon.addEventListener("click", function () {
-    nav.classList.toggle("active"); 
+    nav.classList.toggle("active");
   });
 
-  
+
   document.addEventListener("click", function (event) {
     if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
       nav.classList.remove("active");
@@ -177,14 +182,14 @@ document.addEventListener('DOMContentLoaded', function () {
     lista.innerHTML = '';
     if (!verificarPermissao()) return;
 
-    
+
     lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
 
     links.forEach(link => {
-      
+
       if (link.url === '/fiscal') {
         if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
-          return; 
+          return;
         }
       }
       const li = document.createElement('li');
@@ -205,13 +210,14 @@ document.addEventListener('DOMContentLoaded', function () {
       { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
       { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
       { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
+      { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
       { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
     ], verificarPermissaoEstoque, opcoesVendas);
   });
 
   document.getElementById('vendasLink').addEventListener('click', function (e) {
     e.preventDefault();
-    
+
     let dashboardUrl = '/';
     const cargo = usuario.Cargo.trim().toLowerCase();
     if (cargo === 'admin') {
@@ -230,11 +236,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-  
+
   const usuarioData = sessionStorage.getItem("usuario");
   if (!usuarioData) {
     alert("Usuário não autenticado! Redirecionando para a página de login...");
-    window.location.href = "/"; 
+    window.location.href = "/";
   }
 });
 
@@ -242,14 +248,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const homeIcon = document.getElementById("home-icon");
   const exitIcon = document.getElementById("exit-icon");
 
-  
+
   homeIcon.addEventListener("click", function () {
     window.location.href = "/portal";
   });
 
-  
+
   exitIcon.addEventListener("click", function () {
-    sessionStorage.clear(); 
-    window.location.href = "/"; 
+    sessionStorage.clear();
+    window.location.href = "/";
   });
 });

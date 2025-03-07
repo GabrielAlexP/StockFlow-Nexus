@@ -182,6 +182,11 @@ body {
     flex: 1;
 }
 
+.data-row:nth-child(4) .data-simples {
+    flex: 0.8; /* ou ajuste conforme necessário */
+}
+
+
 .btn-update {
     position: relative;
     display: inline-block;
@@ -269,6 +274,26 @@ body {
     width: auto;
     padding: 10px 25px;
     margin: 0;
+}
+
+.btn-clear {
+    position: relative;
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: #FFF;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    text-align: center;
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-clear:hover {
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
 }
 
 /* Parte comum */
@@ -441,24 +466,4 @@ nav ul li a:hover {
     flex-grow: 1;
     padding-top: 270px;
     text-align: center;
-}
-
-.btn-clear {
-    position: relative;
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #e74c3c, #c0392b);
-    color: #FFF;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s;
-    text-align: center;
-    border: none;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.btn-clear:hover {
-    background: linear-gradient(45deg, #c0392b, #e74c3c);
 }
