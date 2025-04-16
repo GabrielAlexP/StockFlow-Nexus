@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,35 +8,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/css/estoque.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="../static/padrao/css/header_nav.css">
 </head>
+
 <body>
     <header>
         <h1>Consulta Estoque</h1>
         <div class="icon-container">
-          <div class="left-icons">
-            <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
-            <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
-            <div class="icon icon-enter"><i class="fa fa-user"></i></div>
-          </div>
-          <div class="right-icons">
-            <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
-          </div>
+            <div class="left-icons">
+                <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+                <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
+                <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+            </div>
+            <div class="right-icons">
+                <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
+            </div>
         </div>
-      </header>
-    
-      <!-- NAV BAR -->
-      <nav id="sidebar">
+    </header>
+
+    <!-- NAV BAR -->
+    <nav id="sidebar">
         <ul class="nav-superior">
-          <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
-          <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+            <li><a href="#" id="cadastroLink">✍️ Cadastro</a></li>
+            <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+            <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+            <li><a href="#" id="adminLink">⚙️ Admin</a></li>
         </ul>
         <ul class="nav-inferior">
-          <li id="opcoesEstoque"></li>
-          <li id="opcoesVendas"></li>
+            <li id="opcoesCadastro"></li>
+            <li id="opcoesEstoque"></li>
+            <li id="opcoesVendas"></li>
+            <li id="opcoesAdmin"></li>
         </ul>
-      </nav>
-    
+    </nav>
+
     <div class="container" id="search-container">
         <h1>Consulta de Estoque</h1>
         <div class="search-bar">
@@ -48,7 +54,7 @@
                     <option value="ativo">Ativo</option>
                     <option value="inativo">Inativo</option>
                 </select>
-                <select name="" id="marca">    
+                <select name="" id="marca">
                     <option value="all">Marca:</option>
                 </select>
             </div>
@@ -57,7 +63,7 @@
                     <input type="text" id="search-input" placeholder="Digite sua pesquisa aqui...">
                 </div>
                 <div class="right">
-                    
+
                     <label><input type="radio" name="filter" value="description"> Descrição</label>
                     <label><input type="radio" name="filter" value="code"> Código</label>
                     <label><input type="radio" name="filter" value="barcode"> Cód. Barras</label>
@@ -106,5 +112,7 @@
         </table>
     </div>
     <script src="../static/js/estoque.js"></script>
+    <script src="../static/padrao/js/header_nav.js"></script>
 </body>
+
 </html>

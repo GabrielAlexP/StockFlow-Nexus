@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Site de Pesquisa - Formulário Arredondado</title>
     <link rel="stylesheet" href="../static/css/entrega.css">
+    <link rel="stylesheet" href="../static/padrao/css/header_nav.css" />
 </head>
 
 <body>
@@ -27,12 +28,16 @@
     <!-- NAV BAR -->
     <nav id="sidebar">
         <ul class="nav-superior">
+            <li><a href="#" id="cadastroLink">✍️ Cadastro</a></li>
             <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
             <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+            <li><a href="#" id="adminLink">⚙️ Admin</a></li>
         </ul>
         <ul class="nav-inferior">
+            <li id="opcoesCadastro"></li>
             <li id="opcoesEstoque"></li>
             <li id="opcoesVendas"></li>
+            <li id="opcoesAdmin"></li>
         </ul>
     </nav>
 
@@ -158,6 +163,8 @@
                     <input type="text" id="responsavel-telefone" oninput="formatPhone(this); validateSignatureInputs()"
                         style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #444; border-radius: 6px; background-color: #2c2c2c; color: #fff; font-size: 18px;">
                 </label>
+                <div id="telefone-error" style="color: #e74c3c; font-size: 14px; display: none;">*Insira um número de
+                    telefone válido!</div>
                 <br>
                 <label>
                     CPF:
@@ -182,6 +189,7 @@
         </div>
     </div>
     <script src="../static/js/entrega.js"></script>
+    <script src="../static/padrao/js/header_nav.js"></script>
 </body>
 
 </html>

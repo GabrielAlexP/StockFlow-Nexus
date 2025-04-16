@@ -237,6 +237,7 @@ function stopResize() {
   window.removeEventListener('mouseup', stopResize);
 }
 
+// Bloqueio para acesso à página Meta – somente para usuários admin
 document.addEventListener("DOMContentLoaded", function () {
   const usuarioData = sessionStorage.getItem("usuario");
   if (!usuarioData) {
@@ -245,97 +246,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
   const usuario = JSON.parse(usuarioData);
-  if (!usuario.Cargo || usuario.Cargo.trim() === "") {
-    alert("Cargo não definido! Redirecionando para a página de login...");
-    window.location.href = "/";
-    return;
-  }
   if (usuario.Cargo.trim().toLowerCase() !== "admin") {
-    alert("Acesso restrito! Apenas administradores podem acessar esta página. Redirecionando para o portal...");
+    alert("Você não tem permissão para acessar esta página!");
     window.location.href = "/portal";
     return;
   }
+});
 
-  const menuIcon = document.getElementById("menu-icon");
-  const nav = document.querySelector("nav");
-  menuIcon.addEventListener("click", () => nav.classList.toggle("active"));
-  document.addEventListener("click", event => {
-    if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-      nav.classList.remove("active");
-    }
-  });
-
-  const opcoesEstoque = document.getElementById('opcoesEstoque');
-  const opcoesVendas = document.getElementById('opcoesVendas');
-
-  function verificarPermissaoEstoque() {
-    if (!usuario) {
-      alert('Usuário não autenticado!');
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidos = ['admin', 'estoque'];
-    if (!cargosPermitidos.includes(cargoNormalizado)) {
-      alert('Você não tem permissão para acessar esta página!');
-      return false;
-    }
-    return true;
+document.addEventListener("DOMContentLoaded", function () {
+  const usuarioData = sessionStorage.getItem("usuario");
+  if (usuarioData) {
+    // Guarda o usuário em uma variável global, se necessário.
+    window.usuario = JSON.parse(usuarioData);
+  } else {
+    console.warn("Nenhum dado de usuário encontrado.");
   }
-
-  function verificarPermissaoVendas() {
-    if (!usuario) {
-      alert('Usuário não autenticado!');
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-    if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
-      alert('Você não tem permissão para acessar esta página!');
-      return false;
-    }
-    return true;
-  }
-
-  function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-    if (outraLista) outraLista.innerHTML = '';
-    lista.innerHTML = '';
-    if (!verificarPermissao()) return;
-    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
-    links.forEach(link => {
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-      li.querySelector('a').addEventListener('click', function (e) {
-        if (!verificarPermissao()) {
-          e.preventDefault();
-          lista.innerHTML = '';
-        }
-      });
-      lista.appendChild(li);
-    });
-  }
-
-  document.getElementById('estoqueLink').addEventListener('click', function (e) {
-    e.preventDefault();
-    adicionarLinks(opcoesEstoque, [
-      { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-      { url: '/pedidos', texto: 'Status de Pedido', icone: '📜' },
-      { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' }
-    ], verificarPermissaoEstoque, opcoesVendas);
-  });
-
-  document.getElementById('vendasLink').addEventListener('click', function (e) {
-    e.preventDefault();
-    adicionarLinks(opcoesVendas, [
-      { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
-      { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
-    ], verificarPermissaoVendas, opcoesEstoque);
-  });
-
-  const homeIcon = document.getElementById("home-icon");
-  const exitIcon = document.getElementById("exit-icon");
-  homeIcon.addEventListener("click", () => window.location.href = "/portal");
-  exitIcon.addEventListener("click", () => {
-    sessionStorage.clear();
-    window.location.href = "/";
-  });
 });

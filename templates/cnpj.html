@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="../static/css/cnpj.css">
+  <link rel="stylesheet" href="../static/padrao/css/version.css">
+  <link rel="stylesheet" href="../static/padrao/css/header_nav.css" />
 </head>
 
 <body>
@@ -25,17 +27,33 @@
     </div>
   </header>
 
+  <!-- Versão fixa no canto inferior direito -->
+  <div id="version-info">Versão 1.0.1</div>
+
+  <!-- Modal de histórico de versões -->
+  <div id="version-modal" class="version-modal">
+    <div class="version-modal-content">
+      <span id="version-modal-close" class="version-modal-close">&times;</span>
+      <div id="version-modal-body"></div>
+    </div>
+  </div>
+
   <!-- NAV BAR -->
   <nav id="sidebar">
     <ul class="nav-superior">
+      <li><a href="#" id="cadastroLink">✍️ Cadastro</a></li>
       <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
       <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+      <li><a href="#" id="adminLink">⚙️ Admin</a></li>
     </ul>
     <ul class="nav-inferior">
+      <li id="opcoesCadastro"></li>
       <li id="opcoesEstoque"></li>
       <li id="opcoesVendas"></li>
+      <li id="opcoesAdmin"></li>
     </ul>
   </nav>
+
 
   <div class="input-container">
     <form id="search-form" action="#" method="get">
@@ -47,6 +65,7 @@
   </div>
 
   <div class="data-container" id="data-container">
+    <!-- Linha 1: Razão Social e Endereço -->
     <div class="data-row">
       <div class="data-box data-razao">
         <label>Razão Social:</label>
@@ -54,7 +73,8 @@
       </div>
       <div class="data-box data-endereco">
         <label>Endereço:</label>
-        <div class="data-field"></div>
+        <!-- id usado pelo JS para injetar o link -->
+        <div class="data-field" id="endereco-field"></div>
       </div>
     </div>
 
@@ -95,6 +115,11 @@
       </div>
     </div>
 
+    <!-- Nova seção para exibição dos sócios (cada sócio em seu container) -->
+    <div class="data-row" id="socios-row">
+      <!-- Os containers dos sócios serão inseridos aqui dinamicamente -->
+    </div>
+
     <div class="data-row" id="action-buttons">
       <div class="data-box">
         <button class="btn-update" id="atualizar">Atualizar Dados</button>
@@ -112,7 +137,30 @@
       </div>
     </div>
 
+    <div id="map-modal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-images">
+
+          <div class="image-container">
+            <h3>Visão do mapa</h3>
+            <img id="modal-map-img" src="" alt="Mapa Aéreo">
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="image-container">
+            <h3>Visão da rua</h3>
+            <img id="modal-street-img" src="" alt="Visão da Rua">
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <script src="../static/js/cnpj.js"></script>
+    <script src="../static/padrao/js/header_nav.js"></script>
+  </div>
 </body>
 
 </html>

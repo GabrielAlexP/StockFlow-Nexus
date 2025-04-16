@@ -9,59 +9,6 @@ ranking_bp = Blueprint('ranking', __name__)
 def status_pedidos():
     return render_template('ranking.html')
 
-def obter_frete_por_pedido(pedido, id_empresa):
-    try:
-        with pyodbc.connect(conn_str) as conn:
-            query = """
-            SELECT Frete
-            FROM Produto_Venda
-            WHERE IDEMPRESA = ? AND Pedido = ?
-            """
-            cursor = conn.cursor()
-            cursor.execute(query, (id_empresa, pedido))
-            fretes = cursor.fetchall()
-            return sum(row.Frete for row in fretes)
-    except Exception as e:
-        return 0
-
-def obter_vendedores_ativos(id_empresa):
-    try:
-        with pyodbc.connect(conn_str) as conn:
-            query = """
-            SELECT ID_Vendedor, LogON
-            FROM VENDEDOR
-            WHERE ATIVO = 'True' AND IDEMPRESA = ? AND OBS = 'vendedor' OR OBS = 'gerente'
-            """
-            cursor = conn.cursor()
-            cursor.execute(query, (id_empresa,))
-            resultado = cursor.fetchall()
-            vendedores = [
-                {"ID_Vendedor": row.ID_Vendedor, "LogON": row.LogON}
-                for row in resultado
-            ]
-            return vendedores
-    except Exception as e:
-        return []
-
-def obter_vendas(ids_vendedores, data_inicio, data_fim, id_empresa):
-    try:
-        with pyodbc.connect(conn_str) as conn:
-            query = f"""
-            SELECT Vendedor, Pedido, Valor, TabComissao
-            FROM VENDA
-            WHERE IDEMPRESA = ? AND STATUS = 'V' AND DESATIVO = 'False'
-            AND DataVenda BETWEEN ? AND ?
-            AND Vendedor IN ({','.join(['?'] * len(ids_vendedores))})
-            """
-            parametros = [id_empresa, data_inicio, data_fim] + ids_vendedores
-            cursor = conn.cursor()
-            cursor.execute(query, parametros)
-            resultado = cursor.fetchall()
-            vendas = [dict(zip([column[0] for column in cursor.description], row)) for row in resultado]
-            return vendas
-    except Exception as e:
-        return []
-
 @ranking_bp.route("/api/vendas", methods=["POST"])
 def listar_vendas():
     try:
@@ -71,121 +18,7 @@ def listar_vendas():
         dados = request.get_json()
         data_inicio = dados.get("data_inicio")
         data_fim = dados.get("data_fim")
-        id_empresa = dados.get("IDEMPRESA")   
-
-        if not id_empresa:
-            return jsonify({"erro": "IDEMPRESA é obrigatório."}), 400
-
-        try:
-            data_inicio = datetime.datetime.strptime(data_inicio, "%Y-%m-%d %H:%M:%S")
-            data_fim = datetime.datetime.strptime(data_fim, "%Y-%m-%d %H:%M:%S")
-        except (TypeError, ValueError):
-            return jsonify({"erro": "As datas devem estar no formato 'YYYY-MM-DD HH:MM:SS'."}), 400
-
-        vendedores = obter_vendedores_ativos(id_empresa)
-        if not vendedores:
-            return jsonify({"erro": "Nenhum vendedor ativo encontrado para esta empresa."}), 404
-
-        ids_vendedores = [vendedor["ID_Vendedor"] for vendedor in vendedores]
-        vendas = obter_vendas(ids_vendedores, data_inicio, data_fim, id_empresa)
-
-        vendedores_dict = {v["ID_Vendedor"]: v["LogON"] for v in vendedores}
-        resumo_vendas = []
-
-        for vendedor_id in ids_vendedores:
-            vendas_list = [venda for venda in vendas if venda["Vendedor"] == vendedor_id]
-            total_vendas = sum(venda["Valor"] for venda in vendas_list)
-            total_comissao = sum(
-                round((venda["TabComissao"] / 100 * venda["Valor"]) - (venda["TabComissao"] / 100 * obter_frete_por_pedido(venda["Pedido"], id_empresa)), 2)
-                for venda in vendas_list
-            )
-            num_pedidos = len(vendas_list) 
-            resumo_vendas.append({
-                "Vendedor": vendedores_dict.get(vendedor_id, "Vendedor desconhecido"),
-                "Venda": round(total_vendas, 2),
-                "Comissao": round(total_comissao, 2),
-                "Orçamentos": num_pedidos,  
-            })
-
-        return jsonify(resumo_vendas)
-
-    except Exception as e:
-        return jsonify({"erro": f"Erro ao processar a solicitação: {e}"}), 500
-
-    
-def obter_gerentes_ativos(id_empresa):
-    """
-    Retorna uma lista dos nomes dos gerentes ativos (LogON) para uma empresa específica.
-    """
-    try:
-        with pyodbc.connect(conn_str) as conn:
-            query = """
-            SELECT LogON
-            FROM VENDEDOR
-            WHERE ATIVO = 'True' AND IDEMPRESA = ? AND OBS = 'gerente'
-            """
-            cursor = conn.cursor()
-            cursor.execute(query, (id_empresa,))
-            resultado = cursor.fetchall()
-            gerentes = [row.LogON for row in resultado]
-            return gerentes
-    except Exception as e:
-        return []
-
-
-def calcular_comissao_gerente(data_inicio, data_fim, id_empresa):
-    try:
-        vendedores = obter_vendedores_ativos(id_empresa)
-        if not vendedores:
-            return {"erro": "Nenhum vendedor ativo encontrado para esta empresa."}
-
-        ids_vendedores = [vendedor["ID_Vendedor"] for vendedor in vendedores]
-
-        with pyodbc.connect(conn_str) as conn:
-            query_vendas = f"""
-            SELECT Valor, Pedido
-            FROM VENDA
-            WHERE IDEMPRESA = ? AND STATUS = 'V' AND DESATIVO = 'False'
-            AND DataVenda BETWEEN ? AND ?
-            AND Vendedor IN ({','.join(['?'] * len(ids_vendedores))})
-            """
-            parametros = [id_empresa, data_inicio, data_fim] + ids_vendedores
-            cursor = conn.cursor()
-            cursor.execute(query_vendas, parametros)
-            vendas_resultado = cursor.fetchall()
-
-        total_vendas = sum(float(venda.Valor) for venda in vendas_resultado)
-
-        total_frete = sum(float(obter_frete_por_pedido(venda.Pedido, id_empresa)) for venda in vendas_resultado)
-
-        total_bruto = total_vendas - total_frete
-
-        comissao_gerente = round(0.20 / 100 * total_bruto, 2)
-
-        gerentes = obter_gerentes_ativos(id_empresa)
-
-        return {
-            "Gerentes": ", ".join(gerentes) if gerentes else "Nenhum gerente encontrado",
-            "Total_Vendas": round(total_vendas, 2),
-            "Total_Frete": round(total_frete, 2),
-            "Total_Bruto": round(total_bruto, 2),
-            "Comissao_Gerente": comissao_gerente,
-        }
-    except Exception as e:
-        return {"erro": f"Erro ao calcular a comissão dos gerentes: {e}"}
-
-
-@ranking_bp.route("/api/comissao_gerentes", methods=["POST"])
-def listar_comissao_gerentes():
-    try:
-        if not request.is_json:
-            return jsonify({"erro": "O cabeçalho Content-Type deve ser 'application/json'."}), 415
-
-        dados = request.get_json()
-        data_inicio = dados.get("data_inicio")
-        data_fim = dados.get("data_fim")
         id_empresa = dados.get("IDEMPRESA")
-
         if not id_empresa:
             return jsonify({"erro": "IDEMPRESA é obrigatório."}), 400
 
@@ -195,9 +28,102 @@ def listar_comissao_gerentes():
         except (TypeError, ValueError):
             return jsonify({"erro": "As datas devem estar no formato 'YYYY-MM-DD HH:MM:SS'."}), 400
 
-        resultado = calcular_comissao_gerente(data_inicio, data_fim, id_empresa)
-
-        return jsonify(resultado)
-
+        query = """
+WITH VendaUnica AS (
+  SELECT DISTINCT 
+         Pedido, 
+         Valor, 
+         TabComissao, 
+         VENDEDOR
+  FROM VENDA
+  WHERE IDEmpresa = ?
+    AND DataVenda BETWEEN ? AND ?
+    AND STATUS = 'V'
+    AND Desativo = 'False'
+),
+ProdutoAgregado AS (
+  SELECT 
+         Pedido,
+         SUM(COALESCE(Frete, 0)) AS TotalFrete,
+         SUM(COALESCE(CustoProd, 0) * COALESCE(Quantidade, 0)) AS Custo_Total
+  FROM Produto_Venda
+  WHERE IDEmpresa = ?
+  GROUP BY Pedido
+),
+Totals AS (
+  SELECT
+    SUM(vu.Valor) AS TotalValor,
+    SUM(COALESCE(pa.TotalFrete, 0)) AS TotalFrete,
+    SUM(vu.Valor) - SUM(COALESCE(pa.TotalFrete, 0)) AS TotalValorBruto
+  FROM VendaUnica vu
+  LEFT JOIN ProdutoAgregado pa ON pa.Pedido = vu.Pedido
+),
+TotalsVendedor AS (
+  SELECT
+    SUM(vu.Valor) - SUM(COALESCE(pa.TotalFrete, 0)) AS TotalValorBruto_Vendedor
+  FROM VendaUnica vu
+  INNER JOIN Vendedor v ON v.ID_Vendedor = vu.VENDEDOR
+  LEFT JOIN ProdutoAgregado pa ON pa.Pedido = vu.Pedido
+  WHERE v.Ativo = 'True'
+    AND v.OBS = 'vendedor'
+    AND v.IDEmpresa = ?
+),
+Base AS (
+  SELECT 
+    v.ID_Vendedor,       
+    v.LogON AS Vendedor,
+    v.OBS AS Cargo,
+    COUNT(vu.Pedido) AS Orçamentos,
+    SUM(vu.Valor) AS Valor,
+    CASE
+      WHEN v.OBS = 'gerente' THEN 
+           (0.2/100.0) * T.TotalValorBruto
+      WHEN v.OBS = 'supervisor' THEN 
+           (SUM((vu.TabComissao / 100.0) * vu.Valor)
+            - SUM((vu.TabComissao / 100.0) * COALESCE(pa.TotalFrete, 0)))
+           + ((0.2/100.0) * TV.TotalValorBruto_Vendedor)
+      ELSE
+           SUM((vu.TabComissao / 100.0) * vu.Valor)
+           - SUM((vu.TabComissao / 100.0) * COALESCE(pa.TotalFrete, 0))
+    END AS Comissao_Venda,
+    SUM(vu.Valor)
+      - SUM((vu.TabComissao / 100.0) * vu.Valor)
+      - SUM(COALESCE(pa.TotalFrete, 0))
+      - SUM(COALESCE(pa.Custo_Total, 0)) AS Lucro
+  FROM VendaUnica vu
+  INNER JOIN Vendedor v ON v.ID_Vendedor = vu.VENDEDOR
+  LEFT JOIN ProdutoAgregado pa ON pa.Pedido = vu.Pedido
+  CROSS JOIN Totals T
+  CROSS JOIN TotalsVendedor TV
+  WHERE 
+      v.Ativo = 'True'
+    AND v.OBS = 'vendedor'
+    AND v.IDEmpresa = ?
+  GROUP BY 
+    v.ID_Vendedor, v.LogON, v.OBS, T.TotalValorBruto, TV.TotalValorBruto_Vendedor
+)
+SELECT * FROM Base
+UNION ALL
+SELECT 
+  NULL AS ID_Vendedor,
+  'TOTAL' AS Vendedor,
+  'TOTAL' AS Cargo,
+  SUM(Orçamentos) AS Orçamentos,
+  SUM(Valor) AS Valor,
+  SUM(Comissao_Venda) AS Comissao_Venda,
+  SUM(Lucro) AS Lucro
+FROM Base;
+        """
+        # Ordem dos parâmetros:
+        # 1: id_empresa (VendaUnica), 2: data_inicio, 3: data_fim,
+        # 4: id_empresa (ProdutoAgregado), 5: id_empresa (TotalsVendedor), 6: id_empresa (Base)
+        params = [id_empresa, data_inicio, data_fim, id_empresa, id_empresa, id_empresa]
+        with pyodbc.connect(conn_str) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            resultado = cursor.fetchall()
+            columns = [column[0] for column in cursor.description]
+            vendas = [dict(zip(columns, row)) for row in resultado]
+        return jsonify(vendas)
     except Exception as e:
         return jsonify({"erro": f"Erro ao processar a solicitação: {e}"}), 500

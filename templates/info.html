@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking dos Vendedores</title>
+    <link rel="stylesheet" href="../static/css/info.css">
+    <link rel="icon" href="/favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="left-area">
+        <div class="superior">
+            <h1 id="last-att" class="att">Última atualização: </h1>
+            <!-- Seleção de mês, ano e empresa removida -->
+        </div>
+        <div id="loading-alert" style="display: none;">Aguarde, carregando informações...</div>
+        <div id="chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+    <div id="forms-container">
+        <form id="sales-form">
+            <h2>Desempenho dos Vendedores:</h2>
+        </form>
+    </div>
+    <script src="/static/js/info.js"></script>
+</body>
+
+</html>

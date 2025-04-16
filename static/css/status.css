@@ -1,18 +1,14 @@
-/* Demais estilos mantidos */
-
 body {
     font-family: Arial, sans-serif;
     background-color: #121212;
     color: #ffffff;
     margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
+    /* Offset para o header fixo */
+    padding-top: 80px;
+    min-height: 100vh;
 }
 
+/* Títulos secundários */
 h2 {
     text-align: center;
     margin: 20px 0;
@@ -20,6 +16,7 @@ h2 {
     font-size: 1.8em;
 }
 
+/* Legenda */
 .legenda {
     position: absolute;
     bottom: 40px;
@@ -51,9 +48,9 @@ h2 {
     background-color: rgba(255, 223, 0, 0.8);
 }
 
+/* Tabela de Pedidos Não Entregues */
 #pedidos-nao-entregues {
     width: 100%;
-    max-width: 100%;
     margin-top: 20px;
     padding: 0;
     overflow-x: auto;
@@ -131,6 +128,7 @@ h2 {
     background-color: rgb(97, 106, 13);
 }
 
+/* Links de Detalhes */
 .detalhes-link {
     color: #3e8e41;
     text-decoration: underline;
@@ -141,6 +139,7 @@ h2 {
     color: #2a5e2b;
 }
 
+/* Formulário de Detalhes dentro da tabela */
 .form-detalhes-row td {
     padding: 0;
 }
@@ -156,28 +155,12 @@ h2 {
     color: #d0d0d0;
 }
 
-#timer {
-    position: absolute;
-    bottom: 30px;
-    left: 10px;
-    background-color: rgba(50, 205, 50, 0.2);
-    color: #ffffff;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin-left: 250px;
-}
-
 .form-detalhes h3 {
     margin: 10px 0;
     color: #ffffff;
 }
 
+/* Tabela de Detalhes */
 .detalhes-tabela {
     width: 100%;
     border-collapse: collapse;
@@ -200,172 +183,21 @@ h2 {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-header {
-    background: #2d2c3e;
-    width: 100%;
-    position: relative;
-    height: 100px;
-    padding: 0 20px;
-    z-index: 1100;
-}
-
-header h1 {
+/* Timer */
+#timer {
+    position: absolute;
+    bottom: 30px;
+    left: 10px;
+    background-color: rgba(50, 205, 50, 0.2);
     color: #ffffff;
-    font-size: 24px;
-    text-align: center;
-    line-height: 100px;
-    margin: 0;
-}
-
-.icon-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-}
-
-.left-icons {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 15px;
-}
-
-.right-icons {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-}
-
-.icon {
-    cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.1);
-    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.icon i {
-    color: #ffffff;
-    font-size: 30px;
-}
-
-.icon:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-
-.icon-fill:hover {
-    background: #16A085;
-}
-
-.icon-enter:hover {
-    background: #EB9532;
-}
-
-.icon-expand:hover {
-    background: #C82647;
-}
-
-.icon-rotate:hover {
-    background: #7E3661;
-}
-
-.icon-collapse:hover {
-    background: #8CC63F;
-}
-
-/* ====== Ajustes na navegação ====== */
-
-nav {
-    position: fixed;
-    top: 80px; /* abaixo do header */
-    left: -250px; /* inicialmente fora da tela */
-    width: 220px;
-    height: calc(100vh - 80px);
-    background-color: #1a1a22;
-    color: white;
-    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
-    transition: left 0.3s ease-in-out;
-    z-index: 1000;
-    padding: 20px 10px;  /* adicionado padding lateral para conter os itens */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    overflow: hidden;  /* garante que não haja overflow horizontal */
-}
-
-nav.active {
-    left: 0;
-}
-
-.nav-superior {
-    flex-grow: 0;
-    text-align: center;
-}
-
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 10px;
-    text-align: center;
-}
-
-/* Títulos dos grupos de navegação */
-.nav-title {
-    font-weight: bold;
-    color: #39b54a;
-    padding: 5px;
-    background-color: #222;
-    text-align: center;
-    font-size: 12px;
-    box-sizing: border-box;
-}
-
-/* Itens da lista de navegação */
-nav ul {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    width: 100%;
-    margin: 5px 0;
-}
-
-/* Botões da navegação ajustados */
-nav ul li a {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 8px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
     font-size: 14px;
-    color: #fff;
-    text-decoration: none;
-    background-color: #333;
-    border-radius: 5px;
-    transition: background 0.3s;
-    box-sizing: border-box;
-}
-
-nav ul li a:hover {
-    background-color: #39b54a;
-}
-
-/* Se necessário, ajuste o espaçamento do grupo inferior */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 20px;
-    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Ajuste para não ficar atrás da navbar */
+    margin-left: 250px;
 }

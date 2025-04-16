@@ -1,14 +1,14 @@
+// Função auxiliar para formatar o nome: somente a 1° letra maiúscula
+function formatName(name) {
+    if (!name || typeof name !== "string") return "";
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+}
+
+// Calcula o intervalo do mês corrente: do primeiro ao último dia do mês
 function obterIntervaloDatas() {
-    const monthSelect = document.getElementById("month-select");
-    const yearInput = document.getElementById("year-input");
-    const mes = parseInt(monthSelect.value || "1", 10);
-    const ano = parseInt(yearInput.value || new Date().getFullYear(), 10);
-    if (isNaN(mes) || isNaN(ano) || ano < 2000 || ano > 2100) {
-        console.error("Mês ou ano inválido.");
-        return null;
-    }
-    const primeiroDia = new Date(ano, mes - 1, 1);
-    const ultimoDia = new Date(ano, mes, 0);
+    const now = new Date();
+    const primeiroDia = new Date(now.getFullYear(), now.getMonth(), 1);
+    const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const data_inicio = `${primeiroDia.getFullYear()}-${(primeiroDia.getMonth() + 1)
         .toString()
         .padStart(2, "0")}-${primeiroDia.getDate().toString().padStart(2, "0")} 00:00:00`;
@@ -19,7 +19,6 @@ function obterIntervaloDatas() {
 }
 
 let loadingAnimationInterval;
-
 function animarLoading() {
     const loadingAlert = document.getElementById("loading-alert");
     const baseText = "Aguarde, carregando informações";
@@ -31,15 +30,20 @@ function animarLoading() {
 }
 
 async function obterVendas() {
-    const intervalo = obterIntervaloDatas();
-    if (!intervalo) return;
-    const { data_inicio, data_fim } = intervalo;
-    const empresaSelect = document.getElementById("empresa-select");
-    const empresa = empresaSelect.value || "5";
-    if (!empresa) {
-        alert("Por favor, selecione uma empresa.");
-        return;
+    const { data_inicio, data_fim } = obterIntervaloDatas();
+
+    // Recupera dados do usuário (empresa, cargo, ID, Sexo)
+    const usuarioData = sessionStorage.getItem("usuario");
+    let usuario = {};
+    if (usuarioData) {
+        try {
+            usuario = JSON.parse(usuarioData);
+        } catch (e) {
+            console.error("Erro ao parsear dados do usuário:", e);
+        }
     }
+    const empresa = usuario.Empresa || "5";
+
     const loadingAlert = document.getElementById("loading-alert");
     loadingAlert.style.display = "block";
     animarLoading();
@@ -56,18 +60,107 @@ async function obterVendas() {
         const vendas = await response.json();
         atualizarHorarioAtualizacao();
         atualizarFormularioUnificado(vendas);
-        const labels = vendas.map(vendedor => vendedor.Vendedor);
-        const data = vendas.map(vendedor => parseFloat(vendedor.Venda));
-        gerarGrafico(labels, data);
+
+        // Configura os dados do gráfico
+        let chartLabels = [];
+        let chartData = [];
+        // Exibe todos os vendedores (exceto o registro TOTAL)
+        vendas.forEach(v => {
+            if (v.Vendedor !== "TOTAL") {
+                if (usuario.Cargo === "vendedor" && v.ID_Vendedor != usuario.Vendedor) {
+                    chartLabels.push("*****");
+                } else {
+                    chartLabels.push(formatName(v.Vendedor));
+                }
+                chartData.push(parseFloat(v.Valor));
+            }
+        });
+        gerarGrafico(chartLabels, chartData);
         document.getElementById("salesChart").style.display = "block";
-        document.getElementById("sales-form").style.display = "block";
-        document.getElementById("total").style.display = "block";
     } catch (error) {
         console.error("Erro ao obter vendas:", error);
         alert("Erro ao obter dados da API: " + error.message);
     } finally {
         clearInterval(loadingAnimationInterval);
         loadingAlert.style.display = "none";
+    }
+}
+
+function atualizarFormularioUnificado(vendas) {
+    const formulario = document.getElementById("sales-form");
+    const totalForm = document.getElementById("total");
+    formulario.innerHTML = `<h2>Desempenho dos Vendedores:</h2>`;
+    totalForm.innerHTML = `<h2>Total:</h2>`;
+
+    // Recupera os dados do usuário
+    const usuarioData = sessionStorage.getItem("usuario");
+    let usuario = {};
+    if (usuarioData) {
+        try {
+            usuario = JSON.parse(usuarioData);
+        } catch (e) {
+            console.error("Erro ao parsear dados do usuário:", e);
+        }
+    }
+    // Separa o registro TOTAL dos demais vendedores
+    const totalRecord = vendas.find(v => v.Vendedor === "TOTAL");
+    const vendedores = vendas.filter(v => v.Vendedor !== "TOTAL");
+
+    // Ordena os vendedores em ordem decrescente pelo valor
+    vendedores.sort((a, b) => b.Valor - a.Valor);
+
+    vendedores.forEach((vendedor, index) => {
+        const containerVendedor = document.createElement("div");
+        containerVendedor.classList.add("vendedor");
+
+        let nomeExibido = "";
+        if (usuario.Cargo === "vendedor" && vendedor.ID_Vendedor != usuario.Vendedor) {
+            nomeExibido = "*****";
+        } else {
+            nomeExibido = formatName(vendedor.Vendedor);
+        }
+        const titulo = document.createElement("h3");
+        // Removido o rótulo " (Vendedor)" do título
+        titulo.textContent = `${index + 1}° Lugar - ${nomeExibido}`;
+        if (usuario.Cargo === "vendedor" && vendedor.ID_Vendedor != usuario.Vendedor) {
+            titulo.style.filter = "blur(5px)";
+            titulo.style.userSelect = "none";
+        }
+        containerVendedor.appendChild(titulo);
+
+        const orcamentosRow = document.createElement("div");
+        orcamentosRow.classList.add("row");
+        orcamentosRow.innerHTML = `<span>Orçamentos:</span><span>${vendedor.Orçamentos}</span>`;
+        containerVendedor.appendChild(orcamentosRow);
+
+        const vendaRow = document.createElement("div");
+        vendaRow.classList.add("row");
+        vendaRow.innerHTML = `<span>Venda:</span><span>${formatarMoeda(vendedor.Valor)}</span>`;
+        containerVendedor.appendChild(vendaRow);
+
+        formulario.appendChild(containerVendedor);
+    });
+
+    // Exibe o registro TOTAL, sem repetir "TOTAL - TOTAL"
+    if (totalRecord) {
+        const containerTotal = document.createElement("div");
+        containerTotal.classList.add("total");
+
+        const tituloTotal = document.createElement("h3");
+        tituloTotal.textContent = `TOTAL`;
+        containerTotal.appendChild(tituloTotal);
+
+        const orcamentosTotalRow = document.createElement("div");
+        orcamentosTotalRow.classList.add("row");
+        orcamentosTotalRow.innerHTML = `<span>Orçamentos:</span><span>${totalRecord.Orçamentos}</span>`;
+        containerTotal.appendChild(orcamentosTotalRow);
+
+        const vendaTotalRow = document.createElement("div");
+        vendaTotalRow.classList.add("row");
+        vendaTotalRow.innerHTML = `<span>Venda:</span><span>${formatarMoeda(totalRecord.Valor)}</span>`;
+        containerTotal.appendChild(vendaTotalRow);
+
+        totalForm.appendChild(containerTotal);
     }
 }
 
@@ -80,58 +173,8 @@ function atualizarHorarioAtualizacao() {
     }
 }
 
-function inicializarHorarioAtualizacao() {
-    const lastAttDiv = document.querySelector("#last-att");
-    if (lastAttDiv) {
-        const agora = new Date();
-        const horarioFormatado = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-        lastAttDiv.textContent = `Última atualização: ${horarioFormatado}`;
-    }
-}
-
-function ajustarMesEAno() {
-    const now = new Date();
-    document.getElementById("month-select").value = now.getMonth() + 1;
-    document.getElementById("year-input").value = now.getFullYear();
-}
-
 function formatarMoeda(valor) {
     return parseFloat(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function atualizarFormularioUnificado(vendas) {
-    const formulario = document.getElementById("sales-form");
-    const totalForm = document.getElementById("total");
-    formulario.innerHTML = `<h2>Desempenho dos Vendedores:</h2>`;
-    totalForm.innerHTML = `<h2>Total:</h2>`;
-    let totalVenda = 0, totalComissao = 0;
-    vendas.sort((a, b) => b.Venda - a.Venda);
-    vendas.forEach((vendedor, index) => {
-        const containerVendedor = document.createElement("div");
-        containerVendedor.classList.add("vendedor");
-        const titulo = document.createElement("h3");
-        titulo.textContent = `Vendedor ${vendedor.Vendedor} - ${index + 1}º Lugar`;
-        containerVendedor.appendChild(titulo);
-        const vendaRow = document.createElement("div");
-        vendaRow.classList.add("row");
-        vendaRow.innerHTML = `<span>Venda:</span><span>${formatarMoeda(vendedor.Venda)}</span>`;
-        containerVendedor.appendChild(vendaRow);
-        const comissaoRow = document.createElement("div");
-        comissaoRow.classList.add("row");
-        comissaoRow.innerHTML = `<span>Comissão:</span><span>${formatarMoeda(vendedor.Comissao)}</span>`;
-        containerVendedor.appendChild(comissaoRow);
-        formulario.appendChild(containerVendedor);
-        totalVenda += parseFloat(vendedor.Venda);
-        totalComissao += parseFloat(vendedor.Comissao);
-    });
-    const totalVendaRow = document.createElement("div");
-    totalVendaRow.classList.add("row");
-    totalVendaRow.innerHTML = `<span>Total de Vendas:</span><span>${formatarMoeda(totalVenda)}</span>`;
-    totalForm.appendChild(totalVendaRow);
-    const totalComissaoRow = document.createElement("div");
-    totalComissaoRow.classList.add("row");
-    totalComissaoRow.innerHTML = `<span>Total de Comissões:</span><span>${formatarMoeda(totalComissao)}</span>`;
-    totalForm.appendChild(totalComissaoRow);
 }
 
 let chartInstance = null;
@@ -161,12 +204,25 @@ function gerarGrafico(labels, data) {
     });
 }
 
-document.getElementById("month-select").addEventListener("change", obterVendas);
-document.getElementById("year-input").addEventListener("input", obterVendas);
-document.getElementById("empresa-select").addEventListener("change", obterVendas);
+// Inicializa a página sem inputs manuais – tudo é definido automaticamente
 document.addEventListener("DOMContentLoaded", function () {
-    ajustarMesEAno();
-    inicializarHorarioAtualizacao();
+    // Bloqueia acesso se o usuário não for supervisor, gerente ou admin
+    const usuarioData = sessionStorage.getItem("usuario");
+    let usuario = {};
+    if (usuarioData) {
+        try {
+            usuario = JSON.parse(usuarioData);
+        } catch (e) {
+            console.error("Erro ao parsear dados do usuário:", e);
+        }
+    }
+    if (usuario.Cargo !== "supervisor" && usuario.Cargo !== "gerente" && usuario.Cargo !== "admin") {
+        alert("Acesso bloqueado: você não possui permissão para acessar esta página.");
+        window.location.href = "/portal"; // Redireciona para a página inicial ou outra página de acesso negado
+        return;
+    }
+
+    atualizarHorarioAtualizacao();
     obterVendas();
     setInterval(obterVendas, 900000);
 });

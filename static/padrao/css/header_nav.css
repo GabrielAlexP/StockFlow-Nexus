@@ -1,0 +1,151 @@
+/* header_nav.css */
+
+/* Header */
+header {
+    background: #2d2c3e;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px;
+    z-index: 1100;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 28px;
+}
+
+.icon-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+}
+
+.left-icons,
+.right-icons {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 15px;
+}
+
+.left-icons {
+    left: 20px;
+}
+
+.right-icons {
+    right: 20px;
+}
+
+.icon {
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.icon i {
+    color: #fff;
+    font-size: 30px;
+}
+
+.icon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+/* Navbar */
+nav {
+    position: fixed;
+    top: 80px;
+    left: -250px;
+    width: 220px;
+    height: calc(100vh - 80px);
+    background-color: #1a1a22;
+    color: white;
+    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+    padding-top: 20px;
+
+    /* 1) Ativa flex column e define overflow para todo o nav */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Lista superior (fixa) */
+nav .nav-superior {
+    flex: 0 0 auto;  /* não cresce nem encolhe */
+}
+
+/* Lista inferior (rolável) */
+nav .nav-inferior {
+    flex: 1 1 auto;   /* ocupa o resto do espaço */
+    overflow-y: auto; /* ativa scrollbar vertical quando necessário */
+    padding-right: 10px; /* espaço para a barra */
+}
+
+/* Estilização extra para a scrollbar (opcional) */
+nav .nav-inferior::-webkit-scrollbar {
+    width: 6px;
+}
+nav .nav-inferior::-webkit-scrollbar-track {
+    background: #1a1a22;
+}
+nav .nav-inferior::-webkit-scrollbar-thumb {
+    background-color: #39b54a;
+    border-radius: 3px;
+}
+
+.nav-title {
+    font-weight: bold;
+    color: #39b54a;
+    padding: 10px;
+    background-color: #222;
+    text-align: center;
+}
+
+nav.active {
+    left: 0;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    margin: 10px 0;
+}
+
+nav ul li a {
+    display: block;
+    padding: 15px;
+    color: #fff;
+    text-decoration: none;
+    background-color: #333;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+nav ul li a:hover {
+    background-color: #39b54a;
+}
+
+/* Espaço para compensar o header fixo */
+.spacer {
+    height: 80px;
+    width: 100%;
+}

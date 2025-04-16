@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Verificação de autenticação e dados do usuário
   const usuarioData = sessionStorage.getItem("usuario");
   console.log(usuarioData);
   if (!usuarioData) {
@@ -21,107 +22,10 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
   const cargo = usuario.Cargo.trim().toLowerCase();
+  // Permite acesso apenas para "admin" ou "estoque"
   if (cargo !== "admin" && cargo !== "estoque") {
     window.location.href = "/portal";
     return;
-  }
-  const menuIcon = document.getElementById("menu-icon");
-  const nav = document.querySelector("nav");
-  if (menuIcon && nav) {
-    menuIcon.addEventListener("click", () => nav.classList.toggle("active"));
-    document.addEventListener("click", event => {
-      if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-        nav.classList.remove("active");
-      }
-    });
-  }
-  const opcoesEstoque = document.getElementById("opcoesEstoque");
-  const opcoesVendas = document.getElementById("opcoesVendas");
-  function verificarPermissaoEstoque() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    if (!["admin", "estoque"].includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
-  }
-  function verificarPermissaoVendas() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    if (!["admin", "vendedor", "gerente", "supervisor"].includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
-  }
-  function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-    if (outraLista) outraLista.innerHTML = "";
-    if (lista) lista.innerHTML = "";
-    if (!verificarPermissao()) return;
-    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
-    links.forEach(link => {
-      if (link.url === "/fiscal" && usuario.Cargo.trim().toLowerCase() !== "admin") return;
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-      li.querySelector("a").addEventListener("click", function (e) {
-        if (link.url === "/fiscal" && usuario.Cargo.trim().toLowerCase() !== "admin") {
-          e.preventDefault();
-          alert("Você não tem permissão para acessar a página Fiscal.");
-          return;
-        }
-        if (!verificarPermissao()) {
-          e.preventDefault();
-          lista.innerHTML = "";
-        }
-      });
-      lista.appendChild(li);
-    });
-  }
-  const estoqueLink = document.getElementById("estoqueLink");
-  if (estoqueLink) {
-    estoqueLink.addEventListener("click", function (e) {
-      e.preventDefault();
-      adicionarLinks(opcoesEstoque, [
-        { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
-        { url: "/pedidos", texto: "Status de Pedido", icone: "🔄" },
-        { url: "/venda", texto: "Relatório de Vendas", icone: "🗂️" },
-        { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
-        { url: "/fiscal", texto: "Perfil Fiscal V2", icone: "📋" }
-      ], verificarPermissaoEstoque, opcoesVendas);
-    });
-  }
-  const vendasLink = document.getElementById("vendasLink");
-  if (vendasLink) {
-    vendasLink.addEventListener("click", function (e) {
-      e.preventDefault();
-      let dashboardUrl = "/";
-      if (cargo === "admin") dashboardUrl = "/admin";
-      else if (cargo === "gerente" || cargo === "supervisor") dashboardUrl = "/gerente";
-      else if (cargo === "vendedor") dashboardUrl = "/vendedor";
-      adicionarLinks(opcoesVendas, [
-        { url: "/ranking", texto: "Ranking de Vendas", icone: "📊" },
-        { url: dashboardUrl, texto: "Dashboard de Vendas", icone: "🛒" },
-        { url: "/cnpj", texto: "Consulta de CNPJ", icone: "🔎" }
-      ], verificarPermissaoVendas, opcoesEstoque);
-    });
-  }
-  const homeIcon = document.getElementById("home-icon");
-  if (homeIcon) {
-    homeIcon.addEventListener("click", () => window.location.href = "/portal");
-  }
-  const exitIcon = document.getElementById("exit-icon");
-  if (exitIcon) {
-    exitIcon.addEventListener("click", () => {
-      sessionStorage.clear();
-      window.location.href = "/";
-    });
   }
 
   async function carregarPedidos() {
@@ -142,11 +46,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const diffDays = Math.floor((currentDate - dateVenda) / (1000 * 60 * 60 * 24));
         const dataCell = diffDays >= 7 ? `<td style="color:red">${dataFormatada}</td>` : `<td>${dataFormatada}</td>`;
         tr.innerHTML = `<td>${pedido.Pedido}</td><td>${pedido.NomeCliente}</td><td>${pedido.Vendedor}</td>${dataCell}<td>${pedido.Situação}</td><td><span class="detalhes-link" data-pedido="${pedido.Pedido}">Mostrar Detalhes</span></td>`;
-        // Atribui o ID do pedido à linha para identificação posterior
         tr.setAttribute("data-pedido", pedido.Pedido);
         tabelaBody.appendChild(tr);
       });
-      // Para cada pedido, busca os detalhes do estoque e compara com a quantidade faltante
       pedidos.forEach(pedido => {
         carregarEstoqueParaPedido(pedido.Pedido);
       });
@@ -156,13 +58,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Função que busca os produtos faltantes e verifica se a QuantidadeFaltante > EstAtual
   async function carregarEstoqueParaPedido(pedidoId) {
     try {
       const response = await fetch(`/api/produtos-faltantes/${pedidoId}`);
       if (!response.ok) throw new Error("Erro ao buscar os dados dos produtos faltantes");
       const produtos = await response.json();
-      // Converte para número, se necessário
       const hasInsufficientStock = produtos.some(prod =>
         parseFloat(prod.QuantidadeFaltante) > parseFloat(prod.EstAtual)
       );

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualizar Preço</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../static/css/produtos.css">
+    <link rel="stylesheet" href="../static/padrao/css/header_nav.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <h1>Atualizar Preço</h1>
+        <div class="icon-container">
+            <div class="left-icons">
+                <div class="icon icon-expand" id="menu-icon"><i class="fa fa-bars"></i></div>
+                <div class="icon icon-fill" id="home-icon"><i class="fa fa-home"></i></div>
+                <div class="icon icon-enter"><i class="fa fa-user"></i></div>
+            </div>
+            <div class="right-icons">
+                <div class="icon icon-collapse" id="exit-icon"><i class="fa fa-sign-in"></i></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navbar -->
+    <nav id="sidebar">
+        <ul class="nav-superior">
+            <li><a href="#" id="cadastroLink">✍️ Cadastro</a></li>
+            <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
+            <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+            <li><a href="#" id="adminLink">⚙️ Admin</a></li>
+        </ul>
+        <ul class="nav-inferior">
+            <li id="opcoesCadastro"></li>
+            <li id="opcoesEstoque"></li>
+            <li id="opcoesVendas"></li>
+            <li id="opcoesAdmin"></li>
+        </ul>
+    </nav>
+
+    <!-- Contêiner principal com as 3 boxes -->
+    <div class="main-container">
+        <!-- Box de Colunas (à esquerda) -->
+        <div class="columns-container" id="columnsContainer">
+            <h2>Colunas</h2>
+            <div class="checkbox-grid">
+                <!-- (Checkboxes dos campos) -->
+                <label><input type="checkbox" class="col-checkbox" data-key="EstoqueAtual" checked> Estoqu Atual</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="UniMedida" checked> Unidade de
+                    Medida</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="CodBarra" checked> Código de Barras</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="CustoMedio" checked> Preço de Custo</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="PreçoMinimo" checked> Preço Minimo</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="PreçoTabela" checked> Preço de
+                    Tabela</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="ativo"> Ativo</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="Altura"> Altura</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="Largura"> Largura</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="Peso"> Peso</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="NCM"> NCM</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="Marca"> Marca</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="A entregar"> A entregar</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="EstoqueFisico"> Estoque Físico</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="EstMinimo"> Est. Minimo</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="EstMaximo"> Est. Máximo</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="DataUltimaCompra">Última Compra Dia</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="QtdUltimaCompra">Qtd. Última Compra</label>
+                <label><input type="checkbox" class="col-checkbox" data-key="CustoUltimaCompra"> Custo Última
+                    Compra</label>
+            </div>
+        </div>
+
+        <!-- Box de Consulta (centro) -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Digite sua pesquisa..." required>
+            <div class="filter-row">
+                <div class="filter-column">
+                    <div class="filter-header">
+                        <input type="checkbox" id="toggleMarca">
+                        <label for="toggleMarca">Marca</label>
+                    </div>
+                    <select id="selectMarca" disabled>
+                        <option value="">Selecione a marca</option>
+                    </select>
+                </div>
+                <div class="filter-column">
+                    <div class="filter-header">
+                        <input type="checkbox" id="toggleAtivo">
+                        <label for="toggleAtivo">Ativo/Inativo</label>
+                    </div>
+                    <select id="selectAtivo" disabled>
+                        <option value="">Selecione</option>
+                        <option value="True">Ativo</option>
+                        <option value="False">Inativo</option>
+                    </select>
+                </div>
+                <div class="filter-column">
+                    <div class="filter-header">
+                        <label>Empresa:</label>
+                    </div>
+                    <select id="selectEmpresa" required>
+                        <option value="">Selecione a empresa</option>
+                    </select>
+                </div>
+            </div>
+            <div class="radio-group">
+                <label><input type="radio" name="tipoBusca" value="codigo" checked> Código</label>
+                <label><input type="radio" name="tipoBusca" value="descricao"> Descrição</label>
+            </div>
+            <button id="btnSearch">Pesquisar 🔎</button>
+            <button id="btnGravar" disabled>Gravar</button>
+        </div>
+
+        <!-- Box Atualizar Preço (à direita) -->
+        <div class="update-price-container">
+            <h2>Atualizar preço</h2>
+            <div class="update-price-grid">
+                <div class="price-type-1">
+                    <label><input type="radio" name="priceType" value="CustoMedio" checked> Custo médio</label>
+                </div>
+                <div class="price-input">
+                    <input type="text" placeholder="Digite o valor">
+                </div>
+                <div class="price-type-2">
+                    <label><input type="radio" name="priceType" value="PreçoMinimo"> Preço Mínimo</label>
+                </div>
+                <div class="price-operation">
+                    <label><input type="radio" name="operation" value="soma" checked> Soma</label>
+                    <label><input type="radio" name="operation" value="subtracao"> Subtração</label>
+                </div>
+                <div class="price-type-3">
+                    <label><input type="radio" name="priceType" value="PreçoTabela"> Preço de Tabela</label>
+                </div>
+                <div class="percentage-cell">
+                    <label>
+                        <input type="checkbox" id="chkPorcentagem"> Porcentagem
+                    </label>
+                </div>
+            </div>
+            <div class="update-price-button">
+                <button id="btnAtualizar">Atualizar</button>
+            </div>
+            <div class="arredondar-container">
+                <label>
+                    <input type="checkbox" id="chkArredondar"> Arredondar valores para par
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Resultados -->
+    <div class="results-area" id="resultsArea">
+        <div class="results-container" id="resultsContainer">
+            <div id="recordCount"></div>
+            <table id="produtosTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="resultTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../static/js/produtos.js"></script>
+    <script src="../static/padrao/js/header_nav.js"></script>
+</body>
+
+</html>

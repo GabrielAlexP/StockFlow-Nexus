@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, session
 from services.database import conn_str
 import pyodbc
+from services.log import log_pesquisa, log_produto
 
 estoque_bp = Blueprint('estoque', __name__)
 
@@ -28,6 +29,10 @@ def consulta():
             valor_query = f'%{valor}%'
         else:
             return jsonify({'error': 'Filtro inválido'}), 400
+
+        # Log do evento de pesquisa
+        usuario = session.get("usuario", "Usuário desconhecido")
+        log_pesquisa(usuario, valor, filtro)
 
         query = f"""
             SELECT ESTOQUE.*, DetEstoque.*
@@ -96,6 +101,7 @@ def detalhes_produto():
         id_empresa = request.args.get('empresaId')
         if not id_produto or not id_empresa:
             return jsonify({'error': 'ID do produto e empresaId são necessários'}), 400
+
         query = """
             SELECT EstAtual, Ativo
             FROM DetEstoque
@@ -114,8 +120,14 @@ def detalhes_produto():
         cursor.execute(query_data_ultimo_inventario, (id_produto, id_empresa))
         resultado_data_ultimo_inventario = cursor.fetchone()
         conn.close()
+
         if not resultado:
             return jsonify({'error': 'Produto não encontrado'}), 404
+
+        # Log do evento de visualização do produto
+        usuario = session.get("usuario", "Usuário desconhecido")
+        log_produto(usuario, id_produto)
+
         est_atual = float(resultado[0]) if resultado[0] is not None else 0.0
         ativo = bool(resultado[1])
         data_ultimo_inventario_formatada = (

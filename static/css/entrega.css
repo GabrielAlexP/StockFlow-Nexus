@@ -392,174 +392,6 @@ select#transportadora-select:hover {
     background-color: #006400;
 }
 
-
-
-header {
-    background: #2d2c3e;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100px;
-    z-index: 1100;
-    padding: 0;
-}
-
-
-header h1 {
-    color: #ffffff;
-    font-size: 24px;
-    text-align: center;
-    line-height: 100px;
-    margin: 0;
-}
-
-.icon-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-}
-
-.left-icons {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 15px;
-}
-
-.right-icons {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-}
-
-.icon {
-    cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.1);
-    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.icon i {
-    color: #ffffff;
-    font-size: 30px;
-}
-
-.icon:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-
-.icon-fill:hover {
-    background: #16A085;
-}
-
-.icon-enter:hover {
-    background: #EB9532;
-}
-
-.icon-expand:hover {
-    background: #C82647;
-}
-
-.icon-rotate:hover {
-    background: #7E3661;
-}
-
-.icon-collapse:hover {
-    background: #8CC63F;
-}
-
-nav {
-    position: fixed;
-    top: 80px;
-    /* Ajusta a navegação para começar abaixo do header */
-    left: -250px;
-    /* Manter a navegação fora da tela inicialmente */
-    width: 220px;
-    height: calc(100vh - 80px);
-    /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
-    background-color: #1a1a22;
-    color: white;
-    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
-    transition: left 0.3s ease-in-out;
-    z-index: 1000;
-    padding-top: 20px;
-    /* Ajuste do padding para não sobrepor o conteúdo da navbar */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-/* Ativar navegação */
-nav.active {
-    left: 0;
-    /* Quando ativado, a navegação move-se para a esquerda */
-}
-
-/* Parte superior da navbar */
-.nav-superior {
-    flex-grow: 0;
-    text-align: center;
-}
-
-/* Parte inferior da navbar */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 10px;
-    text-align: center;
-}
-
-/* Estilização dos títulos das seções */
-.nav-title {
-    font-weight: bold;
-    color: #39b54a;
-    padding: 10px;
-    background-color: #222;
-    text-align: center;
-}
-
-/* Itens da lista de navegação */
-nav ul {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    width: 100%;
-    margin: 10px 0;
-}
-
-nav ul li a {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 15px;
-    color: #fff;
-    text-decoration: none;
-    background-color: #333;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #39b54a;
-}
-
 .nav-inferior {
     flex-grow: 1;
     padding-top: 270px;
@@ -752,4 +584,169 @@ nav ul li a:hover {
         text-align: center;
     }
 }
+
+@media (max-width: 640px) {
+    body {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    header {
+        height: 70px;
+    }
+
+    header h1 {
+        font-size: 18px;
+        line-height: 70px;
+    }
+
+    .icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .icon i {
+        font-size: 20px;
+    }
+
+    .container {
+        margin-top: 70px;
+        padding: 15px;
+    }
+
+    .search-bar input[type="text"] {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    /* Ajuste do radio-group para distribuir igualmente as opções */
+    .radio-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
     
+    .radio-group label {
+        flex: 1 1 45%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        background-color: #2c2c2c;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        font-size: 16px;
+    }
+    
+    .radio-group input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 5px;
+    }
+
+    .action-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-group {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .filter-group label {
+        font-size: 16px;
+    }
+
+    .filter-group select {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    .btn-pesquisar {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .btn-wrapper {
+        position: static;
+        width: 100%;
+        margin-top: 15px;
+    }
+
+    #btn-gerar-entrega {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .result-table th,
+    .result-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    /* Modal um pouco mais baixo */
+    .modal-content {
+        margin: 15% auto;
+        padding: 15px;
+    }
+
+    .modal-table th,
+    .modal-table td {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    .modal-table input[type="number"] {
+        font-size: 12px;
+        padding: 4px;
+    }
+
+    #signature-pad {
+        width: 100%;
+        height: 200px;
+    }
+
+    .signature-modal-content {
+        height: auto;
+        padding: 15px;
+    }
+
+    nav {
+        width: 180px;
+        height: calc(100vh - 70px);
+        top: 70px;
+    }
+
+    .nav-inferior {
+        padding-top: 150px;
+    }
+
+    .result-container {
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+
+    .result-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    /* Sobrescreve as larguras definidas no colgroup usando !important */
+    .result-table colgroup col:nth-child(1) { width: 11% !important; }
+    .result-table colgroup col:nth-child(2) { width: 45% !important; }
+    .result-table colgroup col:nth-child(3) { width: 16% !important; }
+    .result-table colgroup col:nth-child(4) { width: 14% !important; }
+    .result-table colgroup col:nth-child(5) { width: 14% !important; }
+
+    .result-table th,
+    .result-table td {
+        padding: 8px;
+        font-size: 14px;
+        text-align: center;
+    }
+}

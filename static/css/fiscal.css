@@ -18,14 +18,16 @@ body {
     /* Base font-size */
 }
 
-/* Topo com botões organizados em três grupos */
+
 .top-bar {
     background-color: #2d2f36;
     padding: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 120px; 
 }
+
 
 .top-left {
     display: flex;
@@ -198,176 +200,6 @@ body {
 
 .section button:hover {
     background-color: #45a049;
-}
-
-header {
-    background: #2d2c3e;
-    width: 100%;
-    position: relative;
-    height: 100px;
-    padding: 0 20px;
-    z-index: 1100;
-    /* Garante que o header fique acima da navbar */
-}
-
-header h1 {
-    color: #ffffff;
-    font-size: 24px;
-    text-align: center;
-    line-height: 100px;
-    margin: 0;
-}
-
-.icon-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-}
-
-.left-icons {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 15px;
-}
-
-.right-icons {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-}
-
-.icon {
-    cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.1);
-    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.icon i {
-    color: #ffffff;
-    font-size: 30px;
-}
-
-.icon:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-
-.icon-fill:hover {
-    background: #16A085;
-}
-
-.icon-enter:hover {
-    background: #EB9532;
-}
-
-.icon-expand:hover {
-    background: #C82647;
-}
-
-.icon-rotate:hover {
-    background: #7E3661;
-}
-
-.icon-collapse:hover {
-    background: #8CC63F;
-}
-
-nav {
-    position: fixed;
-    top: 80px;
-    /* Ajusta a navegação para começar abaixo do header */
-    left: -250px;
-    /* Manter a navegação fora da tela inicialmente */
-    width: 220px;
-    height: calc(100vh - 80px);
-    /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
-    background-color: #1a1a22;
-    color: white;
-    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
-    transition: left 0.3s ease-in-out;
-    z-index: 1000;
-    padding-top: 20px;
-    /* Ajuste do padding para não sobrepor o conteúdo da navbar */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-/* Ativar navegação */
-nav.active {
-    left: 0;
-    /* Quando ativado, a navegação move-se para a esquerda */
-}
-
-/* Parte superior da navbar */
-.nav-superior {
-    flex-grow: 0;
-    text-align: center;
-}
-
-/* Parte inferior da navbar */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 10px;
-    text-align: center;
-}
-
-/* Estilização dos títulos das seções */
-.nav-title {
-    font-weight: bold;
-    color: #39b54a;
-    padding: 10px;
-    background-color: #222;
-    text-align: center;
-}
-
-/* Itens da lista de navegação */
-nav ul {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    width: 100%;
-    margin: 10px 0;
-}
-
-nav ul li a {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 15px;
-    color: #fff;
-    text-decoration: none;
-    background-color: #333;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #39b54a;
-}
-
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 270px;
-    text-align: center;
 }
 
 .btn-clear {

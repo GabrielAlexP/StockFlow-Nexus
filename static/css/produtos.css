@@ -1,0 +1,298 @@
+/* Global */
+body {
+    background-color: #111;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #fff;
+}
+
+.main-container {
+        display: grid;
+        grid-template-columns: 650px 900px 650px;
+        column-gap: 40px;
+        margin: 80px auto 0;
+        display: grid;
+        grid-template-columns: 650px 900px 650px;
+        column-gap: 40px;
+        /* 80px de header + 20px de folga */
+        margin: 120px auto 0;
+     }
+    
+
+/* Box de Colunas – ficará à esquerda */
+.columns-container {
+    width: 600px;
+    margin-left: 50px;
+    background: rgba(40, 40, 40, 0.85);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.columns-container h2 {
+    font-size: 18px;
+    margin-top: 0;
+    color: #2ecc71;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Posiciona o 19º item centralizado na linha */
+.checkbox-grid label:nth-child(19) {
+    grid-column: 2;
+}
+
+.columns-container label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    justify-content: center;
+}
+
+/* Box de Consulta – ficará no centro */
+.search-container {
+    width: 550px;
+    background: rgba(40, 40, 40, 0.85);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.search-container input[type="text"],
+.search-container select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+}
+
+.search-container button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2ecc71;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-container button:hover {
+    background-color: #27ae60;
+}
+
+.search-container button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.filter-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-header {
+    margin-top: 5px;
+}
+
+.filter-column .filter-header {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.filter-column .filter-header label {
+    margin: 0;
+}
+
+/* Box Atualizar Preço – ficará à direita */
+.update-price-container {
+    width: 450px;
+    margin-left: -230px;
+    background: rgba(40, 40, 40, 0.85);
+    border: 1px solid #555;
+    border-radius: 10px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.update-price-container h2 {
+    margin: 0 0 15px;
+    font-size: 18px;
+    color: #2ecc71;
+    text-align: center;
+}
+
+/* Grid interna da box Atualizar Preço: agora com 3 linhas */
+.update-price-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Linha 1: Radio 1 e Input */
+.update-price-grid .price-type-1 {
+    grid-column: 1;
+}
+
+.update-price-grid .price-input {
+    grid-column: 2;
+}
+
+/* Linha 2: Radio 2 e Operação */
+.update-price-grid .price-type-2 {
+    grid-column: 1;
+}
+
+.update-price-grid .price-operation {
+    grid-column: 2;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Linha 3: Radio "Preço de Tabela" e Checkbox "Porcentagem" */
+.update-price-grid .price-type-3 {
+    grid-column: 1;
+}
+
+.update-price-grid .percentage-cell {
+    grid-column: 2;
+    text-align: right;
+    padding-right: 100px;
+}
+
+.update-price-container .price-input input[type="text"] {
+    background-color: #222;
+    border: 2px solid #2ecc71;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.update-price-container .price-input input[type="text"]:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 10px #27ae60;
+    outline: none;
+}
+
+.update-price-button button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2ecc71;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.update-price-button button:hover {
+    background-color: #27ae60;
+}
+
+/* Checkbox de arredondamento alinhada à esquerda */
+.arredondar-container {
+    text-align: left;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+/* Estilo para o número de registros (alinhado à esquerda) */
+#recordCount {
+    text-align: left;
+    font-size: 18px;
+    color: #27ae60;
+    margin-bottom: 10px;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+/* Área de Resultados */
+.results-area {
+    display: none;
+    margin-top: 20px;
+}
+
+.results-container {
+    width: 100%;
+    background: rgba(40, 40, 40, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.5);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.results-container table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.results-container th,
+.results-container td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.results-container thead th {
+    background-color: #2ecc71;
+    color: #fff;
+    user-select: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.results-container tbody tr:nth-child(odd) {
+    background-color: #222;
+}
+
+.results-container tbody tr:nth-child(even) {
+    background-color: #333;
+}
+
+.selected-row {
+    background-color: #27ae60 !important;
+}
+
+.resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 5px;
+    cursor: col-resize;
+    user-select: none;
+    height: 100%;
+}

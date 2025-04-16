@@ -21,6 +21,8 @@ searchForm.addEventListener('submit', function (e) {
   e.preventDefault();
   // Limpa os dados antigos, se houver
   document.querySelectorAll('.data-field').forEach(field => field.textContent = "");
+  // Limpa também os containers de sócios
+  document.getElementById('socios-row').innerHTML = "";
 
   dataContainer.classList.remove('visible');
   void dataContainer.offsetWidth;
@@ -46,20 +48,97 @@ searchForm.addEventListener('submit', function (e) {
         alert(data.erro);
         return;
       }
+
+      // — Preenche campos existentes —
       document.querySelector(".data-razao .data-field").textContent = data["Razao Social"] || "-";
-      document.querySelector(".data-endereco .data-field").textContent = data["Endereco"] || "-";
       document.querySelector(".data-municipio .data-field").textContent = data["Municipio"] || "-";
       document.querySelector(".data-bairro .data-field").textContent = data["Bairro"] || "-";
       document.querySelector(".data-telefone .data-field").textContent = data["Telefone"] || "-";
       document.querySelector(".data-uf .data-field").textContent = data["UF"] || "-";
       document.querySelector(".data-cep .data-field").textContent = data["CEP"] || "-";
       document.querySelector(".data-inscricao .data-field").textContent = data["Inscricao Estadual"] || "-";
-
-      // Atualiza o campo "Simples Nacional" exibindo "Sim" ou "Não"
       document.querySelector(".data-simples .data-field").textContent = data["Simples Nacional"] === 1 ? "Sim" : "Não";
+
+      // ——— NOVO: Endereço clicável que abre o modal ———
+      const enderecoField = document.getElementById('endereco-field');
+      const endereco = data["Endereco"] || "-";
+      const mapUrl = data.MapUrl;
+      const streetUrl = data.StreetUrl;
+
+      enderecoField.innerHTML = `<a href="#" id="address-link">${endereco}</a>`;
+      document.getElementById('address-link').addEventListener('click', evt => {
+        evt.preventDefault();
+        openModal(mapUrl, streetUrl);
+      });
+      // —————————————————————————————————————————————
+
+      // Atualiza a seção de sócios
+      const sociosRow = document.getElementById('socios-row');
+      if (Array.isArray(data["Socios"])) {
+        const count = data["Socios"].length;
+        data["Socios"].forEach((item, index) => {
+          let parts = item.split(":");
+          let role = parts[0].trim();
+          let name = parts.slice(1).join(":").trim();
+
+          const container = document.createElement("div");
+          container.classList.add("data-box");
+          if (count === 1) {
+            container.style.width = "100%";
+          } else {
+            container.style.width = (count % 2 === 1 && index === count - 1)
+              ? "100%"
+              : "calc(50% - 15px)";
+          }
+
+          const label = document.createElement("label");
+          label.textContent = role + ":";
+          const field = document.createElement("div");
+          field.classList.add("data-field");
+          field.textContent = name;
+
+          container.appendChild(label);
+          container.appendChild(field);
+          sociosRow.appendChild(container);
+        });
+      } else {
+        const container = document.createElement("div");
+        container.classList.add("data-box");
+        container.style.width = "100%";
+        const label = document.createElement("label");
+        label.textContent = "Sócios:";
+        const field = document.createElement("div");
+        field.classList.add("data-field");
+        field.textContent = data["Socios"];
+        container.appendChild(label);
+        container.appendChild(field);
+        sociosRow.appendChild(container);
+      }
     })
     .catch(error => console.error("Erro na consulta: ", error));
 });
+
+// — Funções do modal — 
+const modal = document.getElementById('map-modal');
+const imgMap = document.getElementById('modal-map-img');
+const imgStreet = document.getElementById('modal-street-img');
+const closeBtn = modal.querySelector('.modal-close');
+
+function openModal(mapSrc, streetSrc) {
+  imgMap.src = mapSrc;
+  imgStreet.src = streetSrc;
+  modal.style.display = 'flex';
+}
+
+closeBtn.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+// Fecha modal ao clicar fora do conteúdo
+modal.addEventListener('click', e => {
+  if (e.target === modal) modal.style.display = 'none';
+});
+
 
 window.addEventListener('load', function () {
   dataContainer.classList.remove('visible');
@@ -113,149 +192,52 @@ document.getElementById("limpar").addEventListener("click", function (e) {
   dataContainer.style.display = 'none';
   document.getElementById('inserir-em').style.display = 'none';
   document.getElementById('action-buttons').style.display = 'none';
+  document.getElementById("socios-row").innerHTML = "";
   document.getElementById("cnpj").focus();
 });
 
-// PARTE COMPARTILHADA
+// Histórico de versões — basta adicionar novos objetos ao array:
+const VERSION_HISTORY = [
+  { version: '1.0.1', description: 'Ao clicar no endereço, exibirá a foto da rua e o mapa da região do cliente.' },
+];
 
-document.addEventListener("DOMContentLoaded", function () {
+// Elementos
+const versionInfo    = document.getElementById('version-info');
+const modalversion   = document.getElementById('version-modal');
+const modalBody      = document.getElementById('version-modal-body');
+const modalClose     = document.getElementById('version-modal-close');
 
-  const usuarioData = sessionStorage.getItem("usuario");
-  if (usuarioData) {
-    const usuario = JSON.parse(usuarioData);
-  } else {
-    console.warn("Nenhum dado de usuário encontrado.");
-  }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const menuIcon = document.getElementById("menu-icon");
-  const nav = document.querySelector("nav");
-
-  menuIcon.addEventListener("click", function () {
-    nav.classList.toggle("active");
-  });
-
-
-  document.addEventListener("click", function (event) {
-    if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-      nav.classList.remove("active");
-    }
-  });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-  const opcoesEstoque = document.getElementById('opcoesEstoque');
-  const opcoesVendas = document.getElementById('opcoesVendas');
-  const usuario = JSON.parse(sessionStorage.getItem("usuario"));
-
-  function verificarPermissaoEstoque() {
-    if (!usuario) {
-      alert('Usuário não autenticado!');
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidos = ['admin', 'estoque'];
-    if (!cargosPermitidos.includes(cargoNormalizado)) {
-      alert('Você não tem permissão para acessar esta página!');
-      return false;
-    }
-    return true;
-  }
-
-  function verificarPermissaoVendas() {
-    if (!usuario) {
-      alert('Usuário não autenticado!');
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-    if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
-      alert('Você não tem permissão para acessar esta página!');
-      return false;
-    }
-    return true;
-  }
-
-  function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-    outraLista.innerHTML = '';
-    lista.innerHTML = '';
-    if (!verificarPermissao()) return;
-
-
-    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
-
-    links.forEach(link => {
-
-      if (link.url === '/fiscal') {
-        if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
-          return;
-        }
+// Preenche o modal com o histórico
+function populateVersionModal() {
+  modalBody.innerHTML = ''; // limpa
+  VERSION_HISTORY.forEach((item, idx) => {
+      const h3 = document.createElement('h3');
+      h3.textContent = item.version;
+      const p = document.createElement('p');
+      p.textContent = item.description;
+      modalBody.appendChild(h3);
+      modalBody.appendChild(p);
+      if (idx < VERSION_HISTORY.length - 1) {
+          const hr = document.createElement('hr');
+          modalBody.appendChild(hr);
       }
-      const li = document.createElement('li');
-      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-      li.querySelector('a').addEventListener('click', function (e) {
-        if (!verificarPermissao()) {
-          e.preventDefault();
-          lista.innerHTML = '';
-        }
-      });
-      lista.appendChild(li);
-    });
-  }
-
-  document.getElementById('estoqueLink').addEventListener('click', function (e) {
-    e.preventDefault();
-    adicionarLinks(opcoesEstoque, [
-      { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-      { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
-      { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
-      { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
-      { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
-    ], verificarPermissaoEstoque, opcoesVendas);
   });
+}
 
-  document.getElementById('vendasLink').addEventListener('click', function (e) {
-    e.preventDefault();
-
-    let dashboardUrl = '/';
-    const cargo = usuario.Cargo.trim().toLowerCase();
-    if (cargo === 'admin') {
-      dashboardUrl = '/admin';
-    } else if (cargo === 'gerente' || cargo === 'supervisor') {
-      dashboardUrl = '/gerente';
-    } else if (cargo === 'vendedor') {
-      dashboardUrl = '/vendedor';
-    }
-    adicionarLinks(opcoesVendas, [
-      { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
-      { url: dashboardUrl, texto: 'Dashboard de Vendas', icone: '🛒' },
-      { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
-    ], verificarPermissaoVendas, opcoesEstoque);
-  });
+// Abre o modal
+versionInfo.addEventListener('click', () => {
+  populateVersionModal();
+  modalversion.style.display = 'block';
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-
-  const usuarioData = sessionStorage.getItem("usuario");
-  if (!usuarioData) {
-    alert("Usuário não autenticado! Redirecionando para a página de login...");
-    window.location.href = "/";
-  }
+// Fecha ao clicar no “×”
+modalClose.addEventListener('click', () => {
+  modalversion.style.display = 'none';
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-  const homeIcon = document.getElementById("home-icon");
-  const exitIcon = document.getElementById("exit-icon");
-
-
-  homeIcon.addEventListener("click", function () {
-    window.location.href = "/portal";
-  });
-
-
-  exitIcon.addEventListener("click", function () {
-    sessionStorage.clear();
-    window.location.href = "/";
-  });
+// Fecha ao clicar fora do conteúdo
+window.addEventListener('click', (e) => {
+  if (e.target === modalversion) {
+      modalversion.style.display = 'none';
+  }
 });

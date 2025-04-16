@@ -8,8 +8,26 @@ from io import BytesIO
 from PIL import Image
 import os
 import tempfile
+from services.log import log_entrega 
+import platform
 
 entrega_bp = Blueprint('entrega', __name__)
+
+def get_empresa_from_request():
+    """
+    Tenta obter o IDEmpresa do query string (GET) ou do corpo JSON (POST).
+    Se não for possível convertê-lo para inteiro, lança exceção.
+    """
+    empresa = None
+    if request.method == 'GET':
+        empresa = request.args.get('empresa')
+    elif request.method == 'POST':
+        data = request.get_json() or {}
+        empresa = data.get('empresa')
+    try:
+        return int(empresa)
+    except Exception as e:
+        raise ValueError("IDEmpresa não informado ou inválido")
 
 @entrega_bp.route('/entrega')
 def entrega():
@@ -19,11 +37,12 @@ def entrega():
 @entrega_bp.route('/vendedores', methods=['GET'])
 def vendedores():
     try:
+        ide = get_empresa_from_request()
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
         query = ("SELECT ID_Vendedor, LogON FROM Vendedor "
-                 "WHERE IDEmpresa = 5 AND OBS IN ('vendedor', 'gerente', 'supervisor')")
-        cursor.execute(query)
+                 "WHERE IDEmpresa = ? AND OBS IN ('vendedor', 'gerente', 'supervisor', 'admin')")
+        cursor.execute(query, ide)
         sellers = []
         for row in cursor.fetchall():
             sellers.append({
@@ -51,12 +70,13 @@ def pesquisar():
         return jsonify({'error': 'Por favor, selecione um filtro'})
 
     try:
+        ide = get_empresa_from_request()
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
-        base_query = ("SELECT v.Pedido, v.NomeCliente, v.IDCliente, v.DataVenda, v.Situação, ven.LogON as Vendedor "
-                      "FROM Venda v JOIN Vendedor ven ON v.Vendedor = ven.ID_Vendedor "
-                      "WHERE v.IDEmpresa = 5 AND v.STATUS = 'V' AND v.Desativo = 'False'")
-        params = []
+        base_query = ("SELECT v.Pedido, v.NomeCliente, v.IDCliente, v.DataVenda, v.Situação, "
+                      "ven.LogON as Vendedor FROM Venda v JOIN Vendedor ven ON v.Vendedor = ven.ID_Vendedor "
+                      "WHERE v.IDEmpresa = ? AND v.STATUS = 'V' AND v.Desativo = 'False' ")
+        params = [ide]
 
         if filtro.lower() == 'pedido':
             try:
@@ -109,12 +129,13 @@ def modal_detalhes():
         return jsonify({'error': 'Pedido inválido'})
 
     try:
+        ide = get_empresa_from_request()
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
         query_pv = ("SELECT IDProduto, Descrição, Quantidade FROM Produto_Venda "
-                    "WHERE IDEmpresa = 5 AND Pedido = ?")
-        cursor.execute(query_pv, pedido_int)
+                    "WHERE IDEmpresa = ? AND Pedido = ?")
+        cursor.execute(query_pv, ide, pedido_int)
         produtos = {}
         for row in cursor.fetchall():
             produtos[row.IDProduto] = {
@@ -124,8 +145,8 @@ def modal_detalhes():
             }
 
         query_der = ("SELECT IDProduto, Qtd FROM DetEntrega_Romaneio "
-                     "WHERE IDEmpresa = 5 AND Pedido = ?")
-        cursor.execute(query_der, pedido_int)
+                     "WHERE IDEmpresa = ? AND Pedido = ?")
+        cursor.execute(query_der, ide, pedido_int)
         entregas = {}
         for row in cursor.fetchall():
             if row.IDProduto in entregas:
@@ -157,7 +178,7 @@ def gerar_pdf():
     try:
         data = request.get_json()
 
-        # Obtém a variável 'situacao' enviada pelo front end
+        # Obtém a variável 'situacao' enviada pelo front-end
         situacao = data.get('situacao')
         if not situacao:
             return jsonify({'error': 'Situação não informada'}), 400
@@ -188,12 +209,18 @@ def gerar_pdf():
         else:
             return jsonify({'error': 'Assinatura não confirmada'}), 400
 
+        # Obtém o IDEmpresa do payload
+        try:
+            ide = int(data.get('empresa'))
+        except Exception as e:
+            return jsonify({'error': 'IDEmpresa não informado ou inválido'}), 400
+
         # Atualiza o status na tabela Venda
         try:
             conn_update = pyodbc.connect(conn_str)
             cursor_update = conn_update.cursor()
-            update_query = "UPDATE Venda SET Situação = ? WHERE IDEmpresa = 5 AND Pedido = ?"
-            cursor_update.execute(update_query, (situacao, pedido))
+            update_query = "UPDATE Venda SET Situação = ? WHERE IDEmpresa = ? AND Pedido = ?"
+            cursor_update.execute(update_query, (situacao, ide, pedido))
             conn_update.commit()
             cursor_update.close()
             conn_update.close()
@@ -264,8 +291,8 @@ def gerar_pdf():
         try:
             conn_barcode = pyodbc.connect(conn_str)
             cursor_barcode = conn_barcode.cursor()
-            query_cod = "SELECT MAX(CodEntrega) AS MaiorCodEntrega FROM DetEntrega_Romaneio WHERE IDEmpresa = 5"
-            cursor_barcode.execute(query_cod)
+            query_cod = "SELECT MAX(CodEntrega) AS MaiorCodEntrega FROM DetEntrega_Romaneio WHERE IDEmpresa = ?"
+            cursor_barcode.execute(query_cod, ide)
             result_cod = cursor_barcode.fetchone()
             maiorCod = result_cod.MaiorCodEntrega if result_cod and result_cod.MaiorCodEntrega is not None else 0
             novoCodEntrega = maiorCod + 1
@@ -279,6 +306,21 @@ def gerar_pdf():
         horario = "1900-01-01 " + now.strftime('%H:%M:%S.%f')[:-3]
         idTransportadora = data.get('transportadora')
         conferido_por = data.get('conferido_por', '')
+
+        # Recupera o ID do usuário logado com base no nome (conferido_por)
+        try:
+            conn_usuario = pyodbc.connect(conn_str)
+            cursor_usuario = conn_usuario.cursor()
+            query_usuario = "SELECT ID FROM dbo.[Usuário] WHERE IDEmpresa = ? AND USUARIO = ?"
+            cursor_usuario.execute(query_usuario, (ide, conferido_por))
+            row_usuario = cursor_usuario.fetchone()
+            if not row_usuario:
+                return jsonify({'error': 'Usuário não encontrado'}), 404
+            user_id = row_usuario.ID
+            cursor_usuario.close()
+            conn_usuario.close()
+        except Exception as e:
+            return jsonify({'error': 'Erro ao obter ID do usuário: ' + str(e)}), 500
 
         try:
             conn_inserts = pyodbc.connect(conn_str)
@@ -294,11 +336,11 @@ def gerar_pdf():
                 novoCodEntrega,
                 dataEntrega,
                 horario,
-                124,               # Valor fixo para USUARIO
-                situacao,          # 'Entregue' ou 'Entregue Part.'
+                user_id,        
+                situacao,  
                 idTransportadora,
                 conferido_por,
-                5,
+                ide,
                 '',
                 1
             )
@@ -316,7 +358,7 @@ def gerar_pdf():
                     qtd = 0
                 if qtd > 0:
                     cursor_inserts.execute(insert_detail_query, 
-                        (pedido, prod.get('codigo'), qtd, 5, novoCodEntrega, item_number, 0, 0))
+                        (pedido, prod.get('codigo'), qtd, ide, novoCodEntrega, item_number, 0, 0))
                     item_number += 1
 
             conn_inserts.commit()
@@ -346,8 +388,13 @@ def gerar_pdf():
         if not html.strip() or "<body>" not in html.lower():
             html = "<html><body><div style='min-height:100vh;'><h1>Relatório de Entrega</h1><p>Conteúdo não disponível.</p></div></body></html>"
 
-        path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        if platform.system() == "Windows":
+            path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        else:
+            path_wkhtmltopdf = "/usr/bin/wkhtmltopdf"
+
         config_pdf = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+
         options = {
             'page-size': 'A4',
             'encoding': 'UTF-8',
@@ -368,9 +415,9 @@ def gerar_pdf():
         # Verifica se já existe um arquivo com este nome e define um nome único utilizando parênteses
         conn_doc_check = pyodbc.connect(conn_str)
         cursor_doc_check = conn_doc_check.cursor()
-        query_check = "SELECT NOM_ARQUIVO FROM cadarquivos WHERE COD_EMPRESA = 5 AND NOM_ARQUIVO LIKE ?"
+        query_check = "SELECT NOM_ARQUIVO FROM cadarquivos WHERE COD_EMPRESA = ? AND NOM_ARQUIVO LIKE ?"
         pedidoPattern = f"{pedido}%.pdf"
-        cursor_doc_check.execute(query_check, (pedidoPattern,))
+        cursor_doc_check.execute(query_check, (ide, pedidoPattern))
         existing_files = [row.NOM_ARQUIVO for row in cursor_doc_check.fetchall()]
         cursor_doc_check.close()
         conn_doc_check.close()
@@ -392,7 +439,7 @@ def gerar_pdf():
         """
         doc_params = (
             6,
-            5,
+            ide,
             novoCodEntrega,
             fileName,
             dat_inclusao,
@@ -405,6 +452,32 @@ def gerar_pdf():
         cursor_doc.close()
         conn_doc.close()
 
+        # Insere os dados de contato na tabela Contato_Entrega
+        try:
+            conn_contato = pyodbc.connect(conn_str)
+            cursor_contato = conn_contato.cursor()
+            insert_contato_query = """
+            INSERT INTO Contato_Entrega (Nome, CPF, Tel, Data, IDEmpresa, Pedido)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """
+            contato_params = (
+                data.get('responsavel_nome'),
+                data.get('responsavel_cpf'),
+                data.get('responsavel_telefone'),
+                dat_inclusao,
+                ide,
+                pedido
+            )
+            cursor_contato.execute(insert_contato_query, contato_params)
+            conn_contato.commit()
+            cursor_contato.close()
+            conn_contato.close()
+        except Exception as e:
+            return jsonify({'error': 'Erro ao inserir informações de contato: ' + str(e)}), 500
+
+        # --- Novo: Log de entrega ---
+        log_entrega(conferido_por, pedido)
+
         response = Response(pdf, mimetype='application/pdf')
         response.headers['Content-Disposition'] = f'inline; filename={fileName}'
         return response
@@ -415,10 +488,11 @@ def gerar_pdf():
 @entrega_bp.route('/transportadoras', methods=['GET'])
 def transportadoras():
     try:
+        ide = get_empresa_from_request()
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
-        query = ("SELECT IDTransportadora, RasSocial FROM Transportadora WHERE IDEmpresa = 5")
-        cursor.execute(query)
+        query = ("SELECT IDTransportadora, RasSocial FROM Transportadora WHERE IDEmpresa = ?")
+        cursor.execute(query, ide)
         transportadoras = []
         for row in cursor.fetchall():
             transportadoras.append({

@@ -1,33 +1,47 @@
-/* Reset e estilos globais */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
 }
 
 body {
-    background-color: #121212;
+    background: #121212;
     color: #fff;
-    display: flex;
-    height: 100vh;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #39b54a #1f1f1f;
+}
+
+body::-webkit-scrollbar {
+    width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #1f1f1f;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #39b54a;
+    border-radius: 4px;
 }
 
 header {
     display: flex;
-    background-color: #1f1f1f;
+    background: #1f1f1f;
     width: 100%;
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 10;
 }
 
-/* Add a container div for h1 in your HTML */
 .title-container {
     flex: 1;
     text-align: center;
@@ -41,105 +55,23 @@ h1 {
 .cargo-header {
     font-size: 16px;
     font-weight: bold;
-    min-width: fit-content; 
 }
 
-/* Navegação */
-nav {
-    background-color: #1f1f1f;
-    width: 220px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding-top: 80px;
-
-}
-
-/* Parte superior da navbar */
-.nav-superior {
-    flex-grow: 0;
-    text-align: center;
-}
-
-/* Parte inferior da navbar */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 20px;
-    text-align: center;
-}
-
-/* Estilização dos títulos das seções */
-.nav-title {
-    font-weight: bold;
-    color: #39b54a;
-    padding: 10px;
-    background-color: #222;
-}
-
-/* Itens da lista de navegação */
-nav ul {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-}
-
-nav ul li {
-    width: 100%;
-    margin: 10px 0;
-}
-
-nav ul li a {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 15px;
-    color: #fff;
-    text-decoration: none;
-    background-color: #333;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #39b54a;
-}
-
-/* Conteúdo Principal */
-main {
-    margin-left: 240px;
-    padding: 40px;
-    text-align: center;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.conteudo-central {
-    background: #1f1f1f;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    max-width: 600px;
-}
-
-/* Parte inferior da navbar */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 270px; 
-    text-align: center;
-}
-
+.left-icons,
 .right-icons {
     position: absolute;
-    right: 20px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
+}
+
+.left-icons {
+    left: 20px;
+    gap: 15px;
+}
+
+.right-icons {
+    right: 20px;
 }
 
 .icon {
@@ -151,11 +83,11 @@ main {
     justify-content: center;
     border-radius: 30px;
     background: rgba(255, 255, 255, 0.1);
-    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    transition: .3s ease, transform .3s, box-shadow .3s;
 }
 
 .icon i {
-    color: #ffffff;
+    color: #fff;
     font-size: 30px;
 }
 
@@ -166,14 +98,417 @@ main {
 }
 
 .icon-collapse:hover {
-    background: #8CC63F;
+    background: #8cc63f;
 }
 
-.left-icons {
+nav {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 220px;
+    height: calc(100vh - 80px);
+    background: #1a1a22;
+    color: #fff;
+    box-shadow: 2px 0 10px rgba(214, 198, 198, .5);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.nav-superior ul,
+.nav-inferior ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-title {
+    font-weight: bold;
+    color: #39b54a;
+    padding: 10px;
+    background: #222;
+    text-align: center;
+}
+
+nav ul li {
+    margin: 10px 0;
+}
+
+nav ul li a {
+    display: block;
+    padding: 15px;
+    color: #fff;
+    text-decoration: none;
+    background: #333;
+    border-radius: 5px;
+    transition: background .3s;
+}
+
+nav ul li a:hover {
+    background: #39b54a;
+}
+
+.container-principal {
+    margin-left: 220px;
+    padding: 20px;
+    padding-top: 80px;
+    min-height: calc(100vh - 100px);
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "main promo"
+        "compras compras";
+    gap: 20px;
+}
+
+.main {
+    grid-area: main;
+}
+
+.promo {
+    grid-area: promo;
+}
+
+.compras {
+    grid-area: compras;
+}
+
+.grid-item {
+    border: 2px solid #39b54a;
+    border-radius: 10px;
+    background: #1f1f1f;
+    padding: 10px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder {
+    background: #333;
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 16px;
+    transition: opacity 0.3s;
+}
+
+.promo .placeholder,
+.main .placeholder {
+    aspect-ratio: 16/8.7;
+    width: 100%;
+}
+
+.promo .placeholder img {
+    object-fit: contain;
+    background: #000;
+}
+
+.promo .placeholder:hover,
+.main .placeholder:hover {
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.container-arrow {
     position: absolute;
-    left: 20px;
     top: 50%;
     transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity .5s;
+}
+
+.container-arrow.left {
+    left: 10px;
+}
+
+.container-arrow.right {
+    right: 10px;
+}
+
+.grid-item:hover .container-arrow {
+    opacity: 1;
+}
+
+.dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    gap: 15px;
+    gap: 6px;
+    z-index: 5;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: transparent;
+    position: relative;
+    transition: border-color .3s, background .3s;
+}
+
+.dot.active {
+    border-color: #39b54a;
+    background: #39b54a;
+}
+
+.box {
+    border: 2px solid #39b54a;
+    border-radius: 10px;
+    background: #1f1f1f;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.box-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #39b54a;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.ultimas-compras {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: visible;
+    /* <-- alterado de hidden para visible */
+    gap: 20px;
+    padding: 10px;
+    min-height: 100px;
+}
+
+.ultimas-compras::-webkit-scrollbar {
+    height: 8px;
+}
+
+.ultimas-compras::-webkit-scrollbar-track {
+    background: #1f1f1f;
+}
+
+.ultimas-compras::-webkit-scrollbar-thumb {
+    background: #39b54a;
+    border-radius: 4px;
+}
+
+.compra-grupo {
+    min-width: 300px;
+    border: 1px solid #39b54a;
+    border-radius: 8px;
+    padding: 10px;
+    background: #222;
+    display: flex;
+    flex-direction: column;
+}
+
+.compra-grupo .data-compra {
+    font-size: 14px;
+    color: #39b54a;
+    margin-bottom: 8px;
+}
+
+.compra-grupo table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.compra-grupo th,
+.compra-grupo td {
+    padding: 6px 8px;
+    border: 1px solid #39b54a;
+    text-align: left;
+}
+
+.compra-grupo tr:hover td {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* === Ajustes do Modal === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal {
+    background: #1f1f1f;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1000px;
+    position: relative;
+}
+
+.modal h2 {
+    margin-bottom: 15px;
+    color: #39b54a;
+    text-align: center;
+}
+
+.modal .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Aqui usamos padding-top para manter 16:9, e img com object-fit:contain */
+.modal .preview {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    /* 16:9 */
+    background: #333;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.modal .preview img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.modal .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 5;
+}
+
+.modal .prev-arrow {
+    left: 10px;
+}
+
+.modal .next-arrow {
+    right: 10px;
+}
+
+.modal .btn-group {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.btn-download {
+    background: #39b54a;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-select {
+    background: #2980b9;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-remove {
+    background: #e74c3c;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-save {
+    background: #39b54a;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.anim-right {
+    animation: slide-in-right 0.5s ease forwards;
+}
+
+.anim-left {
+    animation: slide-in-left 0.5s ease forwards;
 }

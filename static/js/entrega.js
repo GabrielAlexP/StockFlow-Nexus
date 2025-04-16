@@ -74,17 +74,34 @@ function validateSignatureInputs() {
     const cpf = document.getElementById("responsavel-cpf").value.trim();
     const confirmBtn = document.getElementById("confirm-signature");
     const cpfError = document.getElementById("cpf-error");
+    const telefoneError = document.getElementById("telefone-error");
+
+    // Validação do CPF
     let digits = cpf.replace(/\D/g, '');
     let cpfValido = false;
     if (digits.length === 11) {
         cpfValido = validarCPF(cpf);
     }
-    if (digits.length === 11 && !cpfValido) {
-        cpfError.style.display = "block";
+    cpfError.style.display = (digits.length === 11 && !cpfValido) ? "block" : "none";
+
+    // Validação do telefone (excluindo o DDD)
+    let phoneDigits = telefone.replace(/\D/g, '');
+    let phoneValid = true;
+    if (phoneDigits.length > 2) {
+        let localPart = phoneDigits.substring(2); // Remove o DDD (primeiros 2 dígitos)
+        // Se todos os dígitos da parte local forem iguais, exibe o erro.
+        if (localPart.split('').every(d => d === localPart[0])) {
+            telefoneError.style.display = "block";
+            phoneValid = false;
+        } else {
+            telefoneError.style.display = "none";
+        }
     } else {
-        cpfError.style.display = "none";
+        telefoneError.style.display = "none";
     }
-    if (nome !== "" && telefone !== "" && cpf !== "" && digits.length === 11 && cpfValido) {
+
+    // Habilita o botão somente se todos os campos forem válidos.
+    if (nome !== "" && telefone !== "" && cpf !== "" && digits.length === 11 && cpfValido && phoneValid) {
         confirmBtn.disabled = false;
     } else {
         confirmBtn.disabled = true;
@@ -92,6 +109,12 @@ function validateSignatureInputs() {
 }
 
 let signatureData = null;
+
+// Recupera o objeto usuário do sessionStorage e armazena o IDEmpresa e Nome do usuário em variáveis globais
+const usuarioData = sessionStorage.getItem("usuario");
+const usuario = usuarioData ? JSON.parse(usuarioData) : {};
+window.empresaId = usuario.Empresa || "";
+window.conferidoPor = usuario.Nome || "";
 
 function mostrarFormulario() {
     document.getElementById('resultado').style.display = 'block';
@@ -105,7 +128,7 @@ function toggleSelect() {
     select.disabled = !checkbox.checked;
 
     if (checkbox.checked) {
-        fetch('/vendedores')
+        fetch(`/vendedores?empresa=${window.empresaId}`)
             .then(response => response.json())
             .then(data => {
                 select.innerHTML = "<option value=''>Vendedor:</option>";
@@ -161,7 +184,7 @@ function gerarEntrega() {
     }
 
     const pedido = selectedRow.cells[0].textContent.trim();
-    fetch(`/modal_detalhes?pedido=${pedido}`)
+    fetch(`/modal_detalhes?pedido=${pedido}&empresa=${window.empresaId}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -249,8 +272,6 @@ function gravarEntrega() {
             if (delivered > 0) {
                 hasItem = true;
             }
-            // Se a quantidade informada for menor que o máximo para algum item,
-            // consideramos que a entrega não foi completa
             if (delivered < max) {
                 allDelivered = false;
             }
@@ -269,8 +290,6 @@ function gravarEntrega() {
     }
 
     // Define a situação com base na verificação:
-    // Se todos os itens entregues atingirem o valor máximo, é 'Entregue'
-    // Caso contrário, 'Entregue Part.'
     const situacao = allDelivered ? 'Entregue' : 'Entregue Part.';
 
     const selectedRow = document.querySelector('.result-table tr.selected');
@@ -295,10 +314,6 @@ function gravarEntrega() {
     const responsavelTelefone = document.getElementById("responsavel-telefone").value.trim();
     const responsavelCpf = document.getElementById("responsavel-cpf").value.trim();
 
-    const usuarioData = sessionStorage.getItem("usuario");
-    const usuario = usuarioData ? JSON.parse(usuarioData) : {};
-    const conferidoPor = usuario.Nome || "";
-
     const produtos = [];
     modalTableRows.forEach(tr => {
         const codigo = tr.cells[0].textContent.trim();
@@ -308,9 +323,9 @@ function gravarEntrega() {
         produtos.push({ codigo, descricao, qtd });
     });
 
-    // Cria o payload com a variável 'situacao'
+    // Cria o payload com a variável 'situacao' e o IDEmpresa
     const dataPayload = {
-        situacao: situacao,          // 'Entregue' ou 'Entregue Part.' calculado no JS
+        situacao: situacao,
         idCliente: idCliente,
         pedido: pedido,
         produtos: produtos,
@@ -318,9 +333,10 @@ function gravarEntrega() {
         responsavel_nome: responsavelNome,
         responsavel_telefone: responsavelTelefone,
         responsavel_cpf: responsavelCpf,
-        conferido_por: conferidoPor,
+        conferido_por: window.conferidoPor,
         transportadora: transportadoraID,
-        transportadora_nome: transportadoraNome
+        transportadora_nome: transportadoraNome,
+        empresa: window.empresaId
     };
 
     fetch('/gerar_pdf', {
@@ -382,7 +398,7 @@ function pesquisar() {
         vendedorParam = vendedorSelect.value;
     }
 
-    let url = `/pesquisar?filtro=${filtro}&valor=${encodeURIComponent(valorBusca)}`;
+    let url = `/pesquisar?filtro=${filtro}&valor=${encodeURIComponent(valorBusca)}&empresa=${window.empresaId}`;
     if (vendedorParam) {
         url += `&vendedor=${vendedorParam}`;
     }
@@ -490,20 +506,17 @@ function FormatarAssinatura() {
     // Processa cada pixel: se fizer parte do traço (alpha > 0), define como preto; caso contrário, branco
     for (let i = 0; i < data.length; i += 4) {
         if (data[i + 3] > 0) {
-            // Pixel do traço: define para preto
-            data[i] = 0;       // Red
-            data[i + 1] = 0;   // Green
-            data[i + 2] = 0;   // Blue
-            data[i + 3] = 255; // Alpha
+            data[i] = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+            data[i + 3] = 255;
         } else {
-            // Fundo transparente: define para branco
             data[i] = 255;
             data[i + 1] = 255;
             data[i + 2] = 255;
             data[i + 3] = 255;
         }
     }
-    // Cria um canvas off‑screen para armazenar a imagem processada
     const offscreenCanvas = document.createElement("canvas");
     offscreenCanvas.width = width;
     offscreenCanvas.height = height;
@@ -513,17 +526,14 @@ function FormatarAssinatura() {
 }
 
 function openSignatureModal() {
-    // Limpa os campos dos inputs
     document.getElementById("responsavel-nome").value = "";
     document.getElementById("responsavel-telefone").value = "";
     document.getElementById("responsavel-cpf").value = "";
-    // Opcional: desabilita o botão de confirmar e oculta a mensagem de erro de CPF
     document.getElementById("confirm-signature").disabled = true;
     document.getElementById("cpf-error").style.display = "none";
 
     document.getElementById("signature-modal").style.display = "block";
 }
-
 
 function closeSignatureModal() {
     const canvas = document.getElementById("signature-pad");
@@ -545,15 +555,12 @@ function confirmSignature() {
     gravarEntrega();
 }
 
-
 function carregarTransportadoras() {
-    fetch('/transportadoras')
+    fetch(`/transportadoras?empresa=${window.empresaId}`)
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById("transportadora-select");
-            // Limpa as opções atuais
             select.innerHTML = "";
-            // Adiciona a opção padrão
             const defaultOption = document.createElement("option");
             defaultOption.value = "";
             defaultOption.text = "Selecione a transportadora";
@@ -570,150 +577,3 @@ function carregarTransportadoras() {
             console.error("Erro ao buscar transportadoras:", error);
         });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-    const usuarioData = sessionStorage.getItem("usuario");
-    if (usuarioData) {
-        const usuario = JSON.parse(usuarioData);
-    } else {
-        console.warn("Nenhum dado de usuário encontrado.");
-    }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const menuIcon = document.getElementById("menu-icon");
-    const nav = document.querySelector("nav");
-
-    menuIcon.addEventListener("click", function () {
-        nav.classList.toggle("active");
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-            nav.classList.remove("active");
-        }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const opcoesEstoque = document.getElementById('opcoesEstoque');
-    const opcoesVendas = document.getElementById('opcoesVendas');
-    const usuario = JSON.parse(sessionStorage.getItem("usuario"));
-
-    function verificarPermissaoEstoque() {
-        if (!usuario) {
-            alert('Usuário não autenticado!');
-            return false;
-        }
-        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-        const cargosPermitidos = ['admin', 'estoque'];
-        if (!cargosPermitidos.includes(cargoNormalizado)) {
-            alert('Você não tem permissão para acessar esta página!');
-            return false;
-        }
-        return true;
-    }
-
-    function verificarPermissaoVendas() {
-        if (!usuario) {
-            alert('Usuário não autenticado!');
-            return false;
-        }
-        const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-        const cargosPermitidosVendas = ['admin', 'vendedor', 'gerente', 'supervisor'];
-        if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
-            alert('Você não tem permissão para acessar esta página!');
-            return false;
-        }
-        return true;
-    }
-
-    function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-        outraLista.innerHTML = '';
-        lista.innerHTML = '';
-        if (!verificarPermissao()) return;
-
-        lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace('opcoes', 'Opções de ')}</li>`;
-
-        links.forEach(link => {
-            if (link.url === '/fiscal') {
-                if (usuario.Cargo.trim().toLowerCase() !== 'admin') {
-                    return;
-                }
-            }
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-            li.querySelector('a').addEventListener('click', function (e) {
-                if (!verificarPermissao()) {
-                    e.preventDefault();
-                    lista.innerHTML = '';
-                }
-            });
-            lista.appendChild(li);
-        });
-    }
-
-    document.getElementById('estoqueLink').addEventListener('click', function (e) {
-        e.preventDefault();
-        adicionarLinks(opcoesEstoque, [
-            { url: '/estoque', texto: 'Consulta de Estoque', icone: '📦' },
-            { url: '/pedidos', texto: 'Status de Pedido', icone: '🔄' },
-            { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
-            { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
-            { url: '/fiscal', texto: 'Perfil Fiscal V2', icone: '📋' },
-        ], verificarPermissaoEstoque, opcoesVendas);
-    });
-
-    document.getElementById('vendasLink').addEventListener('click', function (e) {
-        e.preventDefault();
-
-        let dashboardUrl = '/';
-        const cargo = usuario.Cargo.trim().toLowerCase();
-        if (cargo === 'admin') {
-            dashboardUrl = '/admin';
-        } else if (cargo === 'gerente' || cargo === 'supervisor') {
-            dashboardUrl = '/gerente';
-        } else if (cargo === 'vendedor') {
-            dashboardUrl = '/vendedor';
-        }
-        adicionarLinks(opcoesVendas, [
-            { url: '/ranking', texto: 'Ranking de Vendas', icone: '📊' },
-            { url: dashboardUrl, texto: 'Dashboard de Vendas', icone: '🛒' },
-            { url: '/cnpj', texto: 'Consulta de CNPJ', icone: '🔎' }
-        ], verificarPermissaoVendas, opcoesEstoque);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const usuarioData = sessionStorage.getItem("usuario");
-    if (!usuarioData) {
-        alert("Usuário não autenticado! Redirecionando para a página de login...");
-        window.location.href = "/";
-    }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const homeIcon = document.getElementById("home-icon");
-    const exitIcon = document.getElementById("exit-icon");
-
-    homeIcon.addEventListener("click", function () {
-        window.location.href = "/portal";
-    });
-
-    exitIcon.addEventListener("click", function () {
-        sessionStorage.clear();
-        window.location.href = "/";
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.querySelector('.search-bar input[type="text"]');
-    if (searchInput) {
-        searchInput.addEventListener("keydown", function (event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                pesquisar();
-            }
-        });
-    }
-});

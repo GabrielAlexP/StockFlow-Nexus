@@ -1,469 +1,393 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
 }
 
 body {
-    background-color: #121212;
-    color: #e0e0e0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 20px;
+  background-color: #121212;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 20px;
 }
 
-/* FORMULÁRIO DE PESQUISA */
 .input-container {
-    background-color: #1e1e1e;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    margin-top: 20px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  margin-top: 20px;
+  margin: 100px auto 20px; /* 100px = 80px do header + 20px de espaçamento extra */
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .form-group label {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 
 .data-field {
-    font-size: 1.3rem;
-    /* Aumenta o tamanho da fonte */
-    font-weight: bold;
-    /* Deixa o texto em negrito */
-    text-transform: uppercase;
-    /* Converte o texto para maiúsculas */
+  font-size: 1.3rem;
+  /* Aumenta o tamanho da fonte */
+  font-weight: bold;
+  /* Deixa o texto em negrito */
+  text-transform: uppercase;
+  /* Converte o texto para maiúsculas */
 }
 
 /* Ajusta os inputs para que apenas o texto digitado fique normal, não o placeholder */
 .form-group input[type="text"] {
-    padding: 12px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    outline: none;
-    font-size: 1.2rem;
-    /* Aumenta o tamanho da fonte do input */
-    font-weight: bold;
-    /* Deixa o texto digitado em negrito */
-    text-transform: uppercase;
-    /* Garante que o usuário digite em maiúsculas */
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    text-align: center;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  outline: none;
+  font-size: 1.2rem;
+  /* Aumenta o tamanho da fonte do input */
+  font-weight: bold;
+  /* Deixa o texto digitado em negrito */
+  text-transform: uppercase;
+  /* Garante que o usuário digite em maiúsculas */
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  text-align: center;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Mantém o placeholder com aparência normal */
 .form-group input[type="text"]::placeholder {
-    text-transform: none;
-    /* Remove a conversão para maiúsculas do placeholder */
-    font-weight: normal;
-    opacity: 0.6;
-    /* Deixa ele mais apagado */
+  text-transform: none;
+  /* Remove a conversão para maiúsculas do placeholder */
+  font-weight: normal;
+  opacity: 0.6;
+  /* Deixa ele mais apagado */
 }
 
 .form-group input[type="text"]:hover,
 .form-group input[type="text"]:focus {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: #00b894;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #00b894;
 }
 
 .btn-three {
-    position: relative;
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #00e676, #00c853);
-    color: #FFF;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s;
-    text-align: center;
-    border: none;
-    width: 100%;
+  position: relative;
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #00e676, #00c853);
+  color: #FFF;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  text-align: center;
+  border: none;
+  width: 100%;
 }
 
 .btn-three:hover {
-    background: linear-gradient(45deg, #00c853, #00e676);
+  background: linear-gradient(45deg, #00c853, #00e676);
 }
 
 /* CONTAINER DOS DADOS ORGANIZADOS - OCUPA 100% DA LARGURA */
 .data-container {
-    opacity: 0;
-    visibility: hidden;
-    flex-direction: column;
-    gap: 30px;
-    width: 100%;
-    padding: 0 20px;
-    margin-top: 20px;
-    transition: all 0.4s ease-in-out;
-    transform: translateY(20px);
+  opacity: 0;
+  visibility: hidden;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  padding: 0 20px;
+  margin-top: 20px;
+  transition: all 0.4s ease-in-out;
+  transform: translateY(20px);
 }
 
 .data-container.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .data-row {
-    display: flex;
-    gap: 30px;
-    width: 100%;
+  display: flex;
+  gap: 30px;
+  width: 100%;
 }
 
 .data-box {
-    border: 2px solid #00d084;
-    border-radius: 8px;
-    padding: 15px;
-    background-color: #1e3d32;
-    /* fundo escuro com toque verde */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  border: 2px solid #00d084;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #1e3d32;
+  /* fundo escuro com toque verde */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .data-box label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #00d084;
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #00d084;
 }
 
 .data-box .data-field {
-    background: #173c2e;
-    padding: 8px;
-    border-radius: 4px;
-    text-align: left;
-    color: #e0e0e0;
+  background: #173c2e;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: left;
+  color: #e0e0e0;
 }
 
 /* Larguras diferenciadas para cada campo, de acordo com o conteúdo esperado */
 /* Linha 1: Razão Social (maior) e Endereço */
 .data-row:first-child .data-razao {
-    flex: 2;
+  flex: 2;
 }
 
 .data-row:first-child .data-endereco {
-    flex: 1.5;
+  flex: 1.5;
 }
 
 /* Linha 2: Municipio e Bairro, ambos com espaço igual */
 .data-row:nth-child(2) .data-municipio,
 .data-row:nth-child(2) .data-bairro {
-    flex: 1;
+  flex: 1;
 }
 
 /* Linha 3: Telefone (mais largo), UF (pequeno) e CEP (médio) */
 .data-row:nth-child(3) .data-telefone {
-    flex: 2;
+  flex: 2;
 }
 
 .data-row:nth-child(3) .data-uf {
-    flex: 0.5;
+  flex: 0.5;
 }
 
 .data-row:nth-child(3) .data-cep {
-    flex: 1;
+  flex: 1;
 }
 
 /* Linha 4: Inscrição Estadual ocupa toda a linha */
 .data-row:nth-child(4) .data-inscricao {
-    flex: 1;
+  flex: 1;
 }
 
 .data-row:nth-child(4) .data-simples {
-    flex: 0.8; /* ou ajuste conforme necessário */
+  flex: 0.8;
+  /* ou ajuste conforme necessário */
 }
 
-
 .btn-update {
-    position: relative;
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #EB9532, #FFB347);
-    color: #FFF;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s;
-    text-align: center;
-    border: none;
-    width: 100%;
-    margin-top: 10px;
+  position: relative;
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #EB9532, #FFB347);
+  color: #FFF;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  text-align: center;
+  border: none;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .btn-update:hover {
-    background: linear-gradient(45deg, #FFB347, #EB9532);
+  background: linear-gradient(45deg, #FFB347, #EB9532);
 }
 
 /* Para o último e penúltimo item */
 .data-row:nth-last-child(-n+2) {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .data-row:nth-last-child(-n+2) .data-box {
-    width: auto;
-    min-width: 200px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: none;
-    /* Remove completamente a borda */
-    background: transparent;
-    /* Remove qualquer fundo indesejado */
-    box-shadow: none;
-    /* Garante que não haja sombra ao redor */
-    padding: 0;
-    /* Evita espaçamentos desnecessários */
+  width: auto;
+  min-width: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  /* Remove completamente a borda */
+  background: transparent;
+  /* Remove qualquer fundo indesejado */
+  box-shadow: none;
+  /* Garante que não haja sombra ao redor */
+  padding: 0;
+  /* Evita espaçamentos desnecessários */
 }
 
 #action-buttons {
-    justify-content: space-between;
-    margin-top: 20px;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
 #action-buttons .data-box {
-    flex: 0 1 auto;
-    min-width: 150px;
+  flex: 0 1 auto;
+  min-width: 150px;
 }
 
-/* Estilo do select */
+/* Estilo do select – mantido conforme enviado */
 .data-select select {
-    padding: 10px 15px;
-    border: 2px solid #00d084;
-    border-radius: 8px;
-    background-color: #1e3d32;
-    color: #e0e0e0;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
+  padding: 10px 15px;
+  border: 2px solid #00d084;
+  border-radius: 8px;
+  background-color: #1e3d32;
+  color: #e0e0e0;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
 }
 
 .data-select select option {
-    background-color: #1e3d32;
-    text-align: left;
+  background-color: #1e3d32;
+  text-align: left;
 }
 
 /* Esconder elementos inicialmente */
 #action-buttons,
 #inserir-em {
-    display: none;
+  display: none;
 }
 
 .data-container.visible #action-buttons,
 .data-container.visible #inserir-em {
-    display: flex;
+  display: flex;
 }
 
 /* Ajustar botões para manter estilo */
 #action-buttons .btn-update,
 #action-buttons .btn-clear {
-    width: auto;
-    padding: 10px 25px;
-    margin: 0;
+  width: auto;
+  padding: 10px 25px;
+  margin: 0;
 }
 
 .btn-clear {
-    position: relative;
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #e74c3c, #c0392b);
-    color: #FFF;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s;
-    text-align: center;
-    border: none;
-    width: 100%;
-    margin-top: 10px;
+  position: relative;
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: #FFF;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  text-align: center;
+  border: none;
+  width: 100%;
+  margin-top: 10px;
 }
 
 .btn-clear:hover {
-    background: linear-gradient(45deg, #c0392b, #e74c3c);
+  background: linear-gradient(45deg, #c0392b, #e74c3c);
 }
 
-/* Parte comum */
-
-header {
-    background: #2d2c3e;
-    width: 100%;
-    position: relative;
-    height: 100px;
-    padding: 0 20px;
-    z-index: 1100;
-    /* Garante que o header fique acima da navbar */
+#endereco-field a {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
-header h1 {
-    color: #ffffff;
-    font-size: 24px;
-    text-align: center;
-    line-height: 100px;
-    margin: 0;
+/* ===== Modal ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
 }
 
-.icon-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
+.modal-content {
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90vh;
+  width: 90%;
+  overflow-y: auto;
+  position: relative;
 }
 
-.left-icons {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 15px;
+/* Close button */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
 }
 
-.right-icons {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
+/* Container das imagens e títulos */
+.modal-images {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  /* o gap fica no separator */
 }
 
-.icon {
-    cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.1);
-    transition: 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+/* Cada lado com título + imagem */
+.image-container {
+  flex: 1;
+  text-align: center;
 }
 
-.icon i {
-    color: #ffffff;
-    font-size: 30px;
+.image-container h3 {
+  margin-bottom: 15px;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
-.icon:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+/* Separador vertical */
+.separator {
+  width: 2px;
+  background: #ffffff;
+  margin: 0 20px;
 }
 
-.icon-fill:hover {
-    background: #16A085;
+/* Estilo das imagens */
+.modal-images img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.icon-enter:hover {
-    background: #EB9532;
+#version-info {
+  position: fixed !important;
+  top: 890px !important; /* logo abaixo do header */
+  right: 10px !important;
+  display: inline-block !important; /* se ajusta ao conteúdo */
+  font-size: 12px !important;
+  color: #ccc !important;
+  background: rgba(0,0,0,0.5) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  z-index: 1000 !important;
+  height: auto !important;
+  line-height: normal !important;
+  white-space: nowrap !important;
 }
-
-.icon-expand:hover {
-    background: #C82647;
-}
-
-.icon-rotate:hover {
-    background: #7E3661;
-}
-
-.icon-collapse:hover {
-    background: #8CC63F;
-}
-
-nav {
-    position: fixed;
-    top: 80px;
-    /* Ajusta a navegação para começar abaixo do header */
-    left: -250px;
-    /* Manter a navegação fora da tela inicialmente */
-    width: 220px;
-    height: calc(100vh - 80px);
-    /* A altura da navbar deve ser o tamanho da tela menos a altura do header */
-    background-color: #1a1a22;
-    color: white;
-    box-shadow: 2px 0 10px rgba(214, 198, 198, 0.5);
-    transition: left 0.3s ease-in-out;
-    z-index: 1000;
-    padding-top: 20px;
-    /* Ajuste do padding para não sobrepor o conteúdo da navbar */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-/* Ativar navegação */
-nav.active {
-    left: 0;
-    /* Quando ativado, a navegação move-se para a esquerda */
-}
-
-/* Parte superior da navbar */
-.nav-superior {
-    flex-grow: 0;
-    text-align: center;
-}
-
-/* Parte inferior da navbar */
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 10px;
-    text-align: center;
-}
-
-/* Estilização dos títulos das seções */
-.nav-title {
-    font-weight: bold;
-    color: #39b54a;
-    padding: 10px;
-    background-color: #222;
-    text-align: center;
-}
-
-/* Itens da lista de navegação */
-nav ul {
-    list-style: none;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    width: 100%;
-    margin: 10px 0;
-}
-
-nav ul li a {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 15px;
-    color: #fff;
-    text-decoration: none;
-    background-color: #333;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #39b54a;
-}
-
-.nav-inferior {
-    flex-grow: 1;
-    padding-top: 270px;
-    text-align: center;
+#version-info:hover {
+  color: #fff !important;
 }

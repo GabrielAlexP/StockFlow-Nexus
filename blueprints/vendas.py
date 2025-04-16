@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, session
 from services.database import conn_str
 import pyodbc
 from datetime import datetime
+from services.log import log_venda_pesquisa, log_conferencia
 
 venda_bp = Blueprint('venda', __name__)
 
@@ -17,6 +18,17 @@ def get_vendas():
 
     if not empresa or not data_inicio or not data_fim:
         return jsonify([])
+
+    # Formatando as datas para DD/MM/YYYY
+    try:
+        data_inicio_format = datetime.strptime(data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y")
+        data_fim_format = datetime.strptime(data_fim, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except Exception as e:
+        return jsonify({"error": f"Formato de data inválido: {str(e)}"}), 400
+
+    # Recupera o usuário da session (ou usa um valor padrão)
+    usuario = session.get("usuario", "Usuário desconhecido")
+    log_venda_pesquisa(usuario, data_inicio_format, data_fim_format)
 
     query = """
     SELECT 
@@ -81,9 +93,7 @@ def get_vendas():
         cursor = conn.cursor()
         
         cursor.execute(query, (empresa, empresa, empresa, empresa, empresa, data_inicio, data_fim, empresa))
-
         columns = [column[0] for column in cursor.description]
-        
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
         cursor.close()
@@ -133,6 +143,10 @@ def atualizar_data_conferencia():
         conn.commit()
         cursor.close()
         conn.close()
+
+        # Log do evento de conferência do produto
+        log_conferencia(nome, id_produto)
+
         return jsonify({"message": "Atualização realizada com sucesso!"}), 200
     except Exception as e:
         return jsonify({"error": f"Erro durante a atualização: {str(e)}"}), 500

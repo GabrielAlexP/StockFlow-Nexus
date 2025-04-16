@@ -6,7 +6,6 @@ from email.utils import parsedate_to_datetime
 
 fiscal_bp = Blueprint('fiscal', __name__)
 
-
 def get_last_id(tabela):
     """Obtém o último ID da tabela usando a conexão do Flask"""
     try:

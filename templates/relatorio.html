@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Relatório de Vendas e Comissões</title>
@@ -124,6 +125,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-page">
         <h1>Relatório de Vendas e Comissões</h1>
@@ -319,54 +321,70 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% if data.mes.gerentes %}
-                    {% for gerente in data.mes.gerentes %}
-                    <tr>
-                        <td>{{ gerente.nome }}</td>
-                        <td>{{ gerente.venda | currency_format }}</td>
-                        <td>{{ gerente.lucro | currency_format }}</td>
-                        <td>{{ gerente.comissao | currency_format }}</td>
-                        <td>{{ gerente.orcamentos }}</td>
-                    </tr>
-                    {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="5">Nenhum dado disponível.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-            <div class="section-title">Total</div>
-            <div class="underline"></div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Total</th>
-                        <th>Venda</th>
-                        <th>Lucro</th>
-                        <th>Comissão</th>
-                        <th>Orçamentos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if data.mes.total %}
-                    <tr>
-                        <td>{{ data.mes.total.nome }}</td>
-                        <td>{{ data.mes.total.venda | currency_format }}</td>
-                        <td>{{ data.mes.total.lucro | currency_format }}</td>
-                        <td>{{ data.mes.total.comissao | currency_format }}</td>
-                        <td>{{ data.mes.total.orcamentos }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5">Nenhum dado disponível.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    <div class="section-title">Gerentes</div>
+                    <div class="underline"></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gerente</th>
+                                <th>Venda</th>
+                                <th>Lucro</th>
+                                <th>Comissão</th>
+                                <th>Orçamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data.mes.gerentes %}
+                            {% for gerente in data.mes.gerentes %}
+                            <tr>
+                                <td>{{ gerente.nome }}</td>
+                                <td>{{ gerente.venda | currency_format }}</td>
+                                <td>{{ gerente.lucro | currency_format }}</td>
+                                <td>{{ gerente.comissao | currency_format }}</td>
+                                <td>{{ gerente.orcamentos }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5">Nenhum dado disponível.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <!-- Seção de Total -->
+                    <div class="section-title">Total</div>
+                    <div class="underline"></div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Total</th>
+                                <th>Venda</th>
+                                <th>Lucro</th>
+                                <th>Comissão</th>
+                                <th>Orçamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data.mes.total %}
+                            <tr>
+                                <td>{{ data.mes.total.nome }}</td>
+                                <td>{{ data.mes.total.venda | currency_format }}</td>
+                                <td>{{ data.mes.total.lucro | currency_format }}</td>
+                                <td>{{ data.mes.total.comissao | currency_format }}</td>
+                                <td>{{ data.mes.total.orcamentos }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5">Nenhum dado disponível.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
         </div>
+        <!-- Div preenchedora para estender o fundo preto até o fim da página -->
         <div class="filler"></div>
     </div>
     <footer></footer>
 </body>
+
 </html>

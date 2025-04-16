@@ -7,6 +7,7 @@
     <title>Interface para Cadastro e Pré-visualização</title>
     <link rel="stylesheet" href="../static/css/fiscal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../static/padrao/css/header_nav.css">
 </head>
 
 <body>
@@ -27,12 +28,16 @@
     <!-- NAV BAR -->
     <nav id="sidebar">
         <ul class="nav-superior">
+            <li><a href="#" id="cadastroLink">✍️ Cadastro</a></li>
             <li><a href="#" id="estoqueLink">📦 Estoque</a></li>
             <li><a href="#" id="vendasLink">🛒 Vendas</a></li>
+            <li><a href="#" id="adminLink">⚙️ Admin</a></li>
         </ul>
         <ul class="nav-inferior">
+            <li id="opcoesCadastro"></li>
             <li id="opcoesEstoque"></li>
             <li id="opcoesVendas"></li>
+            <li id="opcoesAdmin"></li>
         </ul>
     </nav>
 
@@ -113,6 +118,7 @@
     </div>
 
     <script src="../static/js/fiscal.js"></script>
+    <script src="../static/padrao/js/header_nav.js"></script>
 </body>
 
 </html>

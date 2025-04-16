@@ -16,7 +16,7 @@ async function carregarEmpresas() {
   }
 }
 document.addEventListener('DOMContentLoaded', carregarEmpresas);
-document.getElementById('empresa-select').addEventListener('change', function() {
+document.getElementById('empresa-select').addEventListener('change', function () {
   const select = document.getElementById('empresa-select');
   if (select.value === "") {
     select.classList.remove('reduzido');
@@ -88,7 +88,7 @@ async function buscarInformacoes() {
     alert('Erro ao buscar informações');
   }
 }
-document.getElementById('search-input').addEventListener('keypress', function(event) {
+document.getElementById('search-input').addEventListener('keypress', function (event) {
   if (event.key === 'Enter') {
     buscarInformacoes();
   }
@@ -208,147 +208,29 @@ function fecharDetalhes() {
   resultados.style.display = 'block';
 }
 
+// ------------------------------
+// Trechos removidos referentes ao header, navbar e menus:
+// - Verificação de dados do usuário no sessionStorage (mantido apenas se necessário para a lógica de negócio)
+// - Menu responsivo (click no menu-icon e toggling da nav)
+// - Lógica dos menus (Estoque, Vendas e Admin)
+// - Eventos dos ícones (Home e Sair)
+// ------------------------------
+
+// Caso a verificação de usuário seja necessária para a lógica de negócio, mantenha-a:
+document.addEventListener("DOMContentLoaded", function () {
+  const usuarioData = sessionStorage.getItem("usuario");
+  if (usuarioData) {
+    window.usuario = JSON.parse(usuarioData);
+  } else {
+    console.warn("Nenhum dado de usuário encontrado.");
+  }
+});
+
+// Também foi mantido o redirecionamento para login se não houver usuário:
 document.addEventListener("DOMContentLoaded", function () {
   const usuarioData = sessionStorage.getItem("usuario");
   if (!usuarioData) {
     alert("Usuário não autenticado! Redirecionando para a página de login...");
     window.location.href = "/";
-    return;
-  }
-  let usuario;
-  try {
-    usuario = JSON.parse(usuarioData);
-  } catch (e) {
-    alert("Erro ao processar os dados do usuário. Redirecionando para a página de login.");
-    sessionStorage.clear();
-    window.location.href = "/";
-    return;
-  }
-  if (!usuario.Cargo || usuario.Cargo.trim() === "") {
-    alert("Cargo não definido! Redirecionando para a página de login...");
-    window.location.href = "/";
-    return;
-  }
-  const cargo = usuario.Cargo.trim().toLowerCase();
-  if (cargo !== "admin" && cargo !== "estoque") {
-    window.location.href = "/portal";
-    return;
-  }
-  
-  // Configurações do menu
-  const menuIcon = document.getElementById("menu-icon");
-  const nav = document.querySelector("nav");
-  if (menuIcon && nav) {
-    menuIcon.addEventListener("click", function () {
-      nav.classList.toggle("active");
-    });
-    document.addEventListener("click", function (event) {
-      if (!nav.contains(event.target) && !menuIcon.contains(event.target)) {
-        nav.classList.remove("active");
-      }
-    });
-  }
-  
-  const opcoesEstoque = document.getElementById("opcoesEstoque");
-  const opcoesVendas = document.getElementById("opcoesVendas");
-
-  function verificarPermissaoEstoque() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidos = ["admin", "estoque"];
-    if (!cargosPermitidos.includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
-  }
-
-  function verificarPermissaoVendas() {
-    if (!usuario) {
-      alert("Usuário não autenticado!");
-      return false;
-    }
-    const cargoNormalizado = usuario.Cargo.trim().toLowerCase();
-    const cargosPermitidosVendas = ["admin", "vendedor", "gerente", "supervisor"];
-    if (!cargosPermitidosVendas.includes(cargoNormalizado)) {
-      alert("Você não tem permissão para acessar esta página!");
-      return false;
-    }
-    return true;
-  }
-
-  function adicionarLinks(lista, links, verificarPermissao, outraLista) {
-    if (outraLista) outraLista.innerHTML = "";
-    if (lista) lista.innerHTML = "";
-    if (!verificarPermissao()) return;
-    lista.innerHTML = `<li class="nav-title">${lista.getAttribute("id").replace("opcoes", "Opções de ")}</li>`;
-    links.forEach(link => {
-      if (link.url === "/fiscal" && usuario.Cargo.trim().toLowerCase() !== "admin") {
-        return;
-      }
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${link.url}">${link.icone} ${link.texto}</a>`;
-      const a = li.querySelector("a");
-      if (a) {
-        a.addEventListener("click", function (e) {
-          if (!verificarPermissao()) {
-            e.preventDefault();
-            lista.innerHTML = "";
-          }
-        });
-      }
-      lista.appendChild(li);
-    });
-  }
-
-  const estoqueLink = document.getElementById("estoqueLink");
-  if (estoqueLink) {
-    estoqueLink.addEventListener("click", function (e) {
-      e.preventDefault();
-      adicionarLinks(opcoesEstoque, [
-        { url: "/estoque", texto: "Consulta de Estoque", icone: "📦" },
-        { url: "/pedidos", texto: "Status de Pedido", icone: "🔄" },
-        { url: '/venda', texto: 'Relatório de Vendas', icone: '🗂️' },
-        { url: '/entrega', texto: 'Ger. Entregas', icone: '📩' },
-        { url: "/fiscal", texto: "Perfil Fiscal V2", icone: "📋" }
-      ], verificarPermissaoEstoque, opcoesVendas);
-    });
-  }
-
-  const vendasLink = document.getElementById("vendasLink");
-  if (vendasLink) {
-    vendasLink.addEventListener("click", function (e) {
-      e.preventDefault();
-      let dashboardUrl = "/";
-      if (cargo === "admin") {
-        dashboardUrl = "/admin";
-      } else if (cargo === "gerente" || cargo === "supervisor") {
-        dashboardUrl = "/gerente";
-      } else if (cargo === "vendedor") {
-        dashboardUrl = "/vendedor";
-      }
-      adicionarLinks(opcoesVendas, [
-        { url: "/ranking", texto: "Ranking de Vendas", icone: "📊" },
-        { url: dashboardUrl, texto: "Dashboard de Vendas", icone: "🛒" },
-        { url: "/cnpj", texto: "Consulta de CNPJ", icone: "🔎" }
-      ], verificarPermissaoVendas, opcoesEstoque);
-    });
-  }
-
-  const homeIcon = document.getElementById("home-icon");
-  if (homeIcon) {
-    homeIcon.addEventListener("click", function () {
-      window.location.href = "/portal";
-    });
-  }
-  const exitIcon = document.getElementById("exit-icon");
-  if (exitIcon) {
-    exitIcon.addEventListener("click", function () {
-      sessionStorage.clear();
-      window.location.href = "/";
-    });
   }
 });

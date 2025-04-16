@@ -4,8 +4,13 @@ import pyodbc
 from datetime import datetime, timedelta
 import calendar
 from services.database import conn_str
+import platform
 
-path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+if platform.system() == "Windows":
+    path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+else:
+    path_wkhtmltopdf = "/usr/bin/wkhtmltopdf"
+
 config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
 report_bp = Blueprint('report', __name__)
