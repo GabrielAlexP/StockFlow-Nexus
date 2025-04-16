@@ -60,10 +60,10 @@ Para o código, utilizei rotas GET para /pesquisar e /modal_detalhes e POST para
 <table>
   <tr>
     <td align="center">
-      <img src="https://i.imgur.com/rCnyWof.png" width="650px" alt="Relatório Diário">
+      <img src="https://i.imgur.com/Uq5Ud5F.jpeg" width="650px" alt="Consulta Pedido">
     </td>
     <td align="center">
-      <img src="https://i.imgur.com/m0PxsSV.png" width="650px" alt="Relatório Mensal">
+      <img src="https://i.imgur.com/4Gk3AgG.jpeg" width="650px" alt="Relatório de Entrega">
     </td>
   </tr>
 </table>
