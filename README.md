@@ -19,17 +19,19 @@
 - Login com diferenciação de cargos
 - Acesso restrito por setor (estoque, vendas, fiscal)
 
-### 📊 Módulo Principal
+### 📊 Módulos Principais
 
-| Recurso                    | Descrição                                                                       |
-|----------------------------|---------------------------------------------------------------------------------|
-| **Consulta de Estoque**    | Filtros avançados + informações detalhadas de produtos e entregas               |
-| **Status de Pedido**       | Visualização colorida com alertas de urgência                                   |
-| **Regras Fiscais**         | Automação de cadastro por NCM com múltiplas combinações                         |
-| **Ranking de Vendas**      | Gráficos de desempenho + relatórios automáticos                                 |
-| **Consulta CNPJ**          | Integração com API + cadastro automático                                        |
-| **Dashboard de Vendas**    | 3 versões personalizadas (admin/gerente/vendedor) com métricas chave             |
-| **Automação de Relatório** | Geração automática de PDF com informações da loja e envio diário para contabilidade |
+| Recurso                     | Descrição                                                                                    |
+|-----------------------------|----------------------------------------------------------------------------------------------|
+| **Consulta de Estoque**     | Filtros avançados + informações detalhadas de produtos e entregas                            |
+| **Status de Pedido**        | Visualização colorida com alertas de urgência                                                |
+| **Regras Fiscais**          | Automação de cadastro por NCM com múltiplas combinações                                      |
+| **Ranking de Vendas**       | Gráficos de desempenho + relatórios automáticos                                              |
+| **Consulta CNPJ**           | Integração com API + cadastro automático                                                     |
+| **Dashboard de Vendas**     | 3 versões personalizadas (admin/gerente/vendedor) com métricas chave                         |
+| **Automação de Relatório**  | Geração automática de PDF com informações da loja e envio diário para contabilidade          |
+| **Gerenciador de Entregas** | Pesquisa de pedidos, coleta assinatura digital e gera PDF de confirmação de entrega.         |
+| **Vendas por Pix**          | Emissão de QR Code Pix com timer, monitoramento de status e liberação automática de pedidos. |
 
 ---
 
@@ -46,6 +48,44 @@ Para o código, eu fiz querys otimizadas para exibir as informações que eu que
 <div align="center">
   <img src="https://i.imgur.com/LPKhjHz.png" width="670px" alt="Dashboard de Vendas">
 </div>
+
+> ### Gerenciador de Entregas
+
+**Resumo:**  
+
+O Gerenciador de Entregas centraliza todo o fluxo de conferência e confirmação de entregas em uma interface simples. O usuário do setor de estoque pesquisa pedidos liberados ou “Entregue Part.”, escolhe entre entrega “tudo” (quantidade máxima) ou “parte” (quantidade customizada), preenche nome, telefone e CPF (com validação) do responsável e captura a assinatura digital via tablet antes de confirmar a operação.
+
+Para o código, utilizei rotas GET para /pesquisar e /modal_detalhes e POST para /gerar_pdf. As consultas SQL otimizadas via PyODBC retornam os produtos e quantidades já entregues; no frontend, JavaScript aplica máscaras e validações de CPF/telefone, monta o modal e captura a assinatura em Base64. No backend, a assinatura é decodificada com PIL, o template é renderizado via Jinja2 e o PDF é gerado com pdfkit, tudo em uma transação que atualiza o status da venda e insere os registros de entrega no banco.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://i.imgur.com/rCnyWof.png" width="650px" alt="Relatório Diário">
+    </td>
+    <td align="center">
+      <img src="https://i.imgur.com/m0PxsSV.png" width="650px" alt="Relatório Mensal">
+    </td>
+  </tr>
+</table>
+
+> ### Pagamento via Pix
+
+**Resumo:**  
+
+A Página Pix centraliza a emissão e o acompanhamento de cobranças em QR Code em uma interface prática. O usuário informa o número do pedido, visualiza o QR Code e o “Pix copia e cola” com um contador regressivo de 3 h, e pode cancelar cobranças ativas. Quando o pagamento é confirmado via API, o sistema libera automaticamente o pedido para entrega.
+
+A integração começou no Postman, obtendo o certificado SSL (mTLS) e tokens OAuth2; em produção, as credenciais são descriptografadas em tempo real. As chamadas HTTP usam requests com certificados cliente, e uma thread monitora o status do QR via API do banco. No backend, PyODBC atualiza as tabelas Pix_QR, Venda e FluxoCaixa; no frontend, JavaScript e QRCodeStyling.js geram o código, exibem o timer e controlam ações de cópia e cancelamento.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://i.imgur.com/Ew6ibLy.jpeg" width="650px" alt="Pagamento Pendente">
+    </td>
+    <td align="center">
+      <img src="https://i.imgur.com/3BSSsel.jpeg" width="650px" alt="Pagamento Confirmado">
+    </td>
+  </tr>
+</table>
 
 > ### Regras Fiscais
 
@@ -148,14 +188,6 @@ A funcionalidade de relatórios do sistema é responsável por extrair, compilar
 - **Automação e Envio de E-mail:**  
   A automação é implementada usando as bibliotecas **Schedule** e **Threading**, que agendam e executam a geração dos relatórios em horários predefinidos. Uma vez gerado, o relatório é enviado automaticamente via e-mail utilizando o **SMTPLib**, permitindo o envio de anexos (os relatórios em PDF) para os destinatários cadastrados.
 
-### Tecnologias Utilizadas
-
-| Categoria       | Tecnologias                                  |
-|-----------------|----------------------------------------------|
-| **Renderização**| PDFKit, Jinja2, HTML5/CSS3                     |
-| **Dados**       | SQL Server 2019+, PyODBC, CTEs                 |
-| **Automação**   | Schedule, Threading, SMTPLib                   |
-
 <table>
   <tr>
     <td align="center">
@@ -170,18 +202,17 @@ A funcionalidade de relatórios do sistema é responsável por extrair, compilar
 > **Nota:** Todos os dados exibidos nas imagens são **Fictícios**, gerados por mim apenas para visualização para demonstrar a funcionalidade do sistema
 ---
 
-## 🛠 Tecnologias
+### Tecnologias Utilizadas
 
-<div align="center">
-
-| Categoria           | Tecnologias                                                                                                                                  |
-|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**         | ![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python) ![Flask](https://img.shields.io/badge/Flask-2.0+-000000?logo=flask)     |
-| **Banco de Dados**  | ![SQL Server](https://img.shields.io/badge/SQL_Server-2019+-CC2927?logo=microsoft-sql-server&logoColor=white) + pyodbc                        |
-| **Segurança**       | ![AES-256](https://img.shields.io/badge/AES_256-Encryption-4CAF50) (Chave Dupla)                                                               |
-| **Frontend**        | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3) ![JS](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript) |
-  
-</div>
+| Categoria            | Tecnologias                                                   |
+|----------------------|---------------------------------------------------------------|
+| **Renderização**     | PDFKit, Jinja2, HTML5/CSS3                                    |
+| **Dados**            | SQL Server 2019+, PyODBC, CTEs                                |
+| **Automação**        | Schedule, Threading, SMTPLib                                  |
+| **API & Ferramentas**| Postman, REST API, Requests, mTLS (SSL cliente)               |
+| **Backend**          | Python 3.8+, Flask 2.x                                        |
+| **Frontend**         | JavaScript, Canvas API, QRCodeStyling.js                      |
+| **Segurança**        | AES‑256 (dupla chave), SSL/TLS mTLS, descriptografia dinâmica |
 
 ---
 
@@ -196,12 +227,20 @@ A funcionalidade de relatórios do sistema é responsável por extrair, compilar
 - **Gestão de Estoque:**  
   A facilidade de conferência do estoque eliminou problemas recorrentes, garantindo maior eficiência e precisão no controle.
 
-| Funcionalidade            | Benefício Direto                           | Impacto Mensurável                   |
-|---------------------------|--------------------------------------------|--------------------------------------|
-| Consulta CNPJ             | Redução de 70% no tempo de cadastro        | +150 clientes cadastrados/dia        |
-| Ranking de Vendas         | Aumento de 25% na produtividade da equipe  | 100% de precisão em comissões        |
-| Relatório Automático      | Entregas 100% dentro do prazo legal        | Redução em inconsistências           |
-| Gração de regra fiscal    | Erros minimizados no registro              | 15h/mês economizadas em análises     |
+- **Entrega de Produtos:**  
+  A geração de entregas com assinatura digital automatizou o processo e eliminou a necessidade de impressão de formulários, economizando tempo e recursos.
+
+- **Pagamentos via PIX:**  
+  O processo de emissão, monitoramento e confirmação automática de QR Codes reduziu fraudes e liberou os pedidos de forma mais rápida e segura.
+
+| Funcionalidade            | Benefício Direto                             | Impacto Mensurável                     |
+|---------------------------|----------------------------------------------|----------------------------------------|
+| Consulta CNPJ             | Redução de 70% no tempo de cadastro          | +150 clientes cadastrados/dia          |
+| Ranking de Vendas         | Aumento de 25% na produtividade da equipe    | 100% de precisão em comissões          |
+| Relatório Automático      | Entregas 100% dentro do prazo legal          | Redução em inconsistências             |
+| Geração de regra fiscal   | Erros minimizados no registro                | 15h/mês economizadas em análises       |
+| Entrega de Produtos       | Processo 100% digital e rastreável           | ≈250 folhas/dia economizadas           |
+| Pagamentos via PIX        | Liberação automática e segura de pedidos     | Redução de fraudes e validações manuais|
 
 ---
 
